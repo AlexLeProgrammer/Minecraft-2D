@@ -28,14 +28,10 @@ var moveSpeed = 5;
 var playerSprite = new Image();
 playerSprite.src = 'sprites/player.png';
 
-var PNJSprite = new Image();
-PNJSprite.src = 'sprites/PNJ.png';
-
-var propsSprite = new Image();
-propsSprite.src = 'sprites/props.png';
-
-var cloudSprite = new Image();
-cloudSprite.src = 'sprites/cloud.png';
+var hotbarCellSprite = new Image();
+hotbarCellSprite.src = 'sprites/hotbarFrame.png';
+var hotbarSelectorSprite = new Image();
+hotbarSelectorSprite.src = 'sprites/hotbarSelector.png';
 
 var woodenBlock = new Image();
 woodenBlock.src = 'sprites/woodPlank.png';
@@ -50,7 +46,7 @@ var playerYVelocity = 0;
 var blockData = [];
 var blockX = 0;
 var blockY = 0;
-var blockId = 0;
+var usedHotbarID = 0;
 
 var gravity = true;
 
@@ -79,11 +75,11 @@ function loop() {
     var blockX = parseInt(mouseWorldPosX / BLOCKSIZE) * BLOCKSIZE;
     var blockY = parseInt(mouseWorldPosY / BLOCKSIZE) * BLOCKSIZE;
 
-    //change de blockId si le joueur veut changer de bloc
+    //change de usedHotbarID si le joueur veut changer de bloc
     if (isOnePressed) {
-        blockId = 0;
+        usedHotbarID = 0;
     } else if (isTwoPressed) {
-        blockId = 1;
+        usedHotbarID = 1;
     }
     
     // clear le canvas
@@ -151,9 +147,19 @@ function loop() {
     context.lineWidth = 3;
     context.strokeRect(blockX - cameraX, blockY - cameraY, 50, 50);
 
+    // dessine la hotbar
+    var hotbarCellSize = 50;
+    var hotbarStartX = canvas.width / 2 - hotbarCellSize * 9 / 2;
+    for (var cellIndex = 0; cellIndex < 9; cellIndex ++) {
+        context.drawImage(hotbarCellSprite, hotbarStartX + cellIndex * hotbarCellSize, canvas.height - hotbarCellSize - 20,
+            hotbarCellSize, hotbarCellSize);
+    }
+    context.drawImage(hotbarSelectorSprite, hotbarStartX + usedHotbarID * hotbarCellSize, canvas.height - hotbarCellSize - 20,
+        hotbarCellSize, hotbarCellSize);
+
     //si on clicke pose un bloc avec le bon type de bloc
     if (isClicked) {
-        var newBlock = [blockX, blockY, blockId];
+        var newBlock = [blockX, blockY, usedHotbarID];
         blockData.push(newBlock);
     }
 
@@ -191,7 +197,18 @@ canvas.addEventListener("mousemove", (e) => {
     canvas.height = window.innerHeight;
     mouseScreenPosX = e.clientX;
     mouseScreenPosY = e.clientY;
-  });
+});
+//molette
+canvas.addEventListener("wheel", (e) => {
+    if (e.deltaY < 0) {
+        usedHotbarID --;
+    }
+    if (e.deltaY > 0) {
+        usedHotbarID ++;
+    }
+    if (usedHotbarID < 0) { usedHotbarID = 8; }
+    if (usedHotbarID > 8) { usedHotbarID = 0; }
+});
 
 //1 = 49, 9 = 57
 document.addEventListener('mousedown', function(e) {
