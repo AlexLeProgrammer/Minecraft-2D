@@ -8,10 +8,6 @@ body {
     align-items: center;
     justify-content: center;
 }
-canvas {
-    margin: 20px;
-    border: 3px solid white;
-}
 p {
     margin: 20px;
     color: white;
