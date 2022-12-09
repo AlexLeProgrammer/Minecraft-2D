@@ -209,10 +209,12 @@ function loop() {
     context.drawImage(playerSprite, playerX - cameraX, playerY - cameraY);
         
     //affiche l'emplacement ou le joueur va placer un bloc avec le bon type de bloc
+    var futureX = parseInt(blockX  / 50) * 50 + cameraX / 100;
+    var futureY = parseInt(blockY  / 50) * 50 + cameraY / 100;
     if (blockId === 0) {
-        context.drawImage(woodenBlock, mouseCanvasPoseX, mouseCanvasPoseY, 50, 50);
+        context.drawImage(woodenBlock, futureX - cameraX, futureY - cameraY, 50, 50);
     } else {
-        context.drawImage(obsidianBlock, mouseCanvasPoseX, mouseCanvasPoseY, 50, 50);
+        context.drawImage(obsidianBlock, futureX - cameraX, futureY - cameraY, 50, 50);
     }
 
     //si on clicke pose un bloc avec le bon type de bloc
@@ -257,8 +259,8 @@ function loop() {
 canvas.addEventListener("mousemove", (e) => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    mouseCanvasPoseX = e.clientX;
-    mouseCanvasPoseY = e.clientY;
+    mouseCanvasPoseX = e.clientX - 25;
+    mouseCanvasPoseY = e.clientY - 25;
     if (mouseCanvasPoseY + cameraY + 30 >= canvas.height - 25) {
         mouseCanvasPoseY = canvas.height - cameraY - 55;
     }
