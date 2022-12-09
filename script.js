@@ -225,11 +225,14 @@ function loop() {
 
 //recupere la position de la souris
 canvas.addEventListener("mousemove", (e) => {
-    mouseCanvasPoseX = e.clientX - 430;
-    mouseCanvasPoseY = e.clientY - 40;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    mouseCanvasPoseX = e.clientX;
+    mouseCanvasPoseY = e.clientY;
     if (mouseCanvasPoseY + cameraY + 30 >= canvas.height - 25) {
         mouseCanvasPoseY = canvas.height - cameraY - 55;
     }
+    console.log(window.innerWidth.toString() + " : " + window.innerHeight.toString());
   });
 
 //detecte si on clique
