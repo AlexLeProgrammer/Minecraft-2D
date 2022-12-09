@@ -162,7 +162,8 @@ function loop() {
     //poser bloc
     if (isClicked && !isABloc(blockX, blockY)) {
         //permet au joueur de poser un bloc uniquement a cote d'un autre bloc
-        if (isABloc(blockX, blockY + 50) || isABloc(blockX, blockY - 50) || isABloc(blockX + 50, blockY) || isABloc(blockX - 50, blockY)) {
+        if (isABloc(blockX, blockY + 50) || isABloc(blockX, blockY - 50) || isABloc(blockX + 50, blockY) || isABloc(blockX - 50, blockY) ||
+            mouseScreenPosY >= canvas.height - cameraY * 1.5) {
             var newBlock = [blockX, blockY, hotbarContent[usedHotbarID]];
             blockData.push(newBlock);
         }
@@ -203,8 +204,8 @@ canvas.addEventListener("mousemove", (e) => {
     canvas.height = window.innerHeight;
     mouseScreenPosX = e.clientX;
     mouseScreenPosY = e.clientY;
-    if (mouseScreenPosY + cameraY >= canvas.height - canvas.height / 8) {
-        mouseScreenPosY = canvas.height / 2 + canvas.height / 8;
+    if (mouseScreenPosY >= canvas.height - cameraY * 1.5) {
+        mouseScreenPosY = canvas.height - cameraY * 1.5;
     }
 });
 //molette
