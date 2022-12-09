@@ -5,6 +5,7 @@ var context = canvas.getContext('2d');
 
 // constantes
 const BLOCKSIZE = 50;
+const GRAVITY_FORCE = 0.5; //le joueur saute de 4 block de haut avec un force de -15 et une gravite de 0.5
 
 //variables
 var playerX = -300;
@@ -19,7 +20,9 @@ var isSpacePressed = false;
 var isClicked = false;
 var isRightClicked = false;
 
+//mouvement du joueur
 var moveSpeed = 5;
+var playerYVelocity = 0;
 
 //variables des images
 var playerSprite = new Image();
@@ -38,14 +41,14 @@ blockTextures[1].src = 'sprites/obsidianBlock.jpg';
 // hotbar
 var hotbarContent = [0, 1, 1, 1, 0, 0, 0, 1, 0];
 
-const GRAVITY_FORCE = 0.5; //le joueur saute de 4 block de haut avec un force de -15 et une gravite de 0.5
-var playerYVelocity = 0;
 
 //variables des blocs
 var blockData = [];
 var blockX = 0;
 var blockY = 0;
 var usedHotbarID = 0;
+
+var canPlaceAir = true;
 
 var gravity = true;
 
@@ -78,7 +81,7 @@ function loop() {
     mouseWorldPosX = mouseScreenPosX - (mouseWorldPosX < 0 ? BLOCKSIZE: 0) + cameraX;
     mouseWorldPosY = mouseScreenPosY - (mouseWorldPosY < 0 ? BLOCKSIZE: 0) + cameraY;
 
-    //arrondi l'emplacement de la souris sur la grille
+    // arrondi l'emplacement de la souris sur la grille
     var blockX = parseInt(mouseWorldPosX / BLOCKSIZE) * BLOCKSIZE;
     var blockY = parseInt(mouseWorldPosY / BLOCKSIZE) * BLOCKSIZE;
     
@@ -149,20 +152,28 @@ function loop() {
     var itemsMargin = 10;
     var hotbarStartX = canvas.width / 2 - hotbarCellSize * 9 / 2;
     for (var cellIndex = 0; cellIndex < 9; cellIndex ++) {
+        // case
         context.drawImage(hotbarCellSprite, hotbarStartX + cellIndex * hotbarCellSize,
         canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
 
+        // item
         context.drawImage(blockTextures[hotbarContent[cellIndex]], hotbarStartX + cellIndex * hotbarCellSize + itemsMargin,
         canvas.height - hotbarCellSize - hotbarHeight + itemsMargin, hotbarCellSize - 2 * itemsMargin, hotbarCellSize - 2 * itemsMargin);
     }
+    // selecteur
     context.drawImage(hotbarSelectorSprite, hotbarStartX + usedHotbarID * hotbarCellSize,
     canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
 
     //poser bloc
     if (isClicked && !isABloc(blockX, blockY)) {
-        var newBlock = [blockX, blockY, hotbarContent[usedHotbarID]];
-        blockData.push(newBlock);
+        //permet au joueur de poser un bloc uniquement a cote d'un autre bloc
+        if (isABloc(blockX, blockY + BLOCKSIZE) || isABloc(blockX, blockY - BLOCKSIZE) || isABloc(blockX + BLOCKSIZE, blockY) || isABloc(blockX - BLOCKSIZE, blockY) ||
+            mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
+            var newBlock = [blockX, blockY, hotbarContent[usedHotbarID]];
+            blockData.push(newBlock);
+        }
     }
+
 
     //supprimer bloc
     for (var i = 0; i < blockData.length; i++) {
@@ -187,8 +198,6 @@ function loop() {
 
     isClicked = false;
     isRightClicked = false;
-    isShiftPressed = false;
-    isOnBlock = false;
     requestAnimationFrame(loop);
 }
 
@@ -198,6 +207,9 @@ canvas.addEventListener("mousemove", (e) => {
     canvas.height = window.innerHeight;
     mouseScreenPosX = e.clientX;
     mouseScreenPosY = e.clientY;
+    if (mouseScreenPosY >= canvas.height - cameraY * 1.5) {
+        mouseScreenPosY = canvas.height - cameraY * 1.5;
+    }
 });
 //molette
 canvas.addEventListener("wheel", (e) => {
