@@ -19,8 +19,6 @@ var isShiftPressed = false;
 var isSpacePressed = false;
 var isClicked = false;
 var isRightClicked = false;
-var isOnePressed = false;
-var isTwoPressed = false;
 
 var moveSpeed = 5;
 
@@ -33,11 +31,13 @@ hotbarCellSprite.src = 'sprites/hotbarFrame.png';
 var hotbarSelectorSprite = new Image();
 hotbarSelectorSprite.src = 'sprites/hotbarSelector.png';
 
-var woodenBlock = new Image();
-woodenBlock.src = 'sprites/woodPlank.png';
+// textures des blocs
+var blockTextures = [new Image(), new Image()];
+blockTextures[0].src = 'sprites/woodPlank.png';
+blockTextures[1].src = 'sprites/obsidianBlock.jpg';
 
-var obsidianBlock = new Image();
-obsidianBlock.src = 'sprites/obsidianBlock.jpg';
+// hotbar
+var hotbarContent = [0, 1, 1, 1, 0, 0, 0, 1, 0];
 
 const GRAVITY_FORCE = 0.5; //le joueur saute de 4 block de haut avec un force de -15 et une gravite de 0.5
 var playerYVelocity = 0;
@@ -74,13 +74,6 @@ function loop() {
     //arrondi l'emplacement de la souris sur la grille
     var blockX = parseInt(mouseWorldPosX / BLOCKSIZE) * BLOCKSIZE;
     var blockY = parseInt(mouseWorldPosY / BLOCKSIZE) * BLOCKSIZE;
-
-    //change de usedHotbarID si le joueur veut changer de bloc
-    if (isOnePressed) {
-        usedHotbarID = 0;
-    } else if (isTwoPressed) {
-        usedHotbarID = 1;
-    }
     
     // clear le canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -102,12 +95,8 @@ function loop() {
 
     //gere les blocs
     for (var i = 0; i < blockData.length; i++) {
-        //dessine les blocs avec le bon type de bloc
-        if (blockData[i][2] === 0) {
-            context.drawImage(woodenBlock, blockData[i][0] - cameraX, blockData[i][1] - cameraY, 50, 50);
-        } else {
-            context.drawImage(obsidianBlock, blockData[i][0] - cameraX, blockData[i][1] - cameraY, 50, 50);
-        }
+        //dessine les blocs
+        context.drawImage(blockTextures[blockData[i][2]], blockData[i][0] - cameraX, blockData[i][1] - cameraY, 50, 50);
 
         //empeche le joueur de tomber lorsqu'il est sur un bloc
         if (playerY >= blockData[i][1] - 130 && playerY <= blockData[i][1] - 90 && playerX >= blockData[i][0] - 60 && playerX <= blockData[i][0] + 50 && playerYVelocity >= 0) {
@@ -149,17 +138,22 @@ function loop() {
 
     // dessine la hotbar
     var hotbarCellSize = 50;
+    var hotbarHeight = 20;
+    var itemsMargin = 10;
     var hotbarStartX = canvas.width / 2 - hotbarCellSize * 9 / 2;
     for (var cellIndex = 0; cellIndex < 9; cellIndex ++) {
-        context.drawImage(hotbarCellSprite, hotbarStartX + cellIndex * hotbarCellSize, canvas.height - hotbarCellSize - 20,
-            hotbarCellSize, hotbarCellSize);
+        context.drawImage(hotbarCellSprite, hotbarStartX + cellIndex * hotbarCellSize,
+        canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
+
+        context.drawImage(blockTextures[hotbarContent[cellIndex]], hotbarStartX + cellIndex * hotbarCellSize + itemsMargin,
+        canvas.height - hotbarCellSize - hotbarHeight + itemsMargin, hotbarCellSize - 2 * itemsMargin, hotbarCellSize - 2 * itemsMargin);
     }
-    context.drawImage(hotbarSelectorSprite, hotbarStartX + usedHotbarID * hotbarCellSize, canvas.height - hotbarCellSize - 20,
-        hotbarCellSize, hotbarCellSize);
+    context.drawImage(hotbarSelectorSprite, hotbarStartX + usedHotbarID * hotbarCellSize,
+    canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
 
     //si on clicke pose un bloc avec le bon type de bloc
     if (isClicked) {
-        var newBlock = [blockX, blockY, usedHotbarID];
+        var newBlock = [blockX, blockY, hotbarContent[usedHotbarID]];
         blockData.push(newBlock);
     }
 
@@ -237,14 +231,6 @@ document.addEventListener('keydown', function(e) {
     if (e.which === 65) {
         isLeftPressed = true;
     }
-    //detecte si on appuie sur la touche "1"
-    if (e.which === 49) {
-        isOnePressed = true;
-    }
-    //detecte si on appuie sur la touche "2"
-    if (e.which === 50) {
-        isTwoPressed = true;
-    }
     //detecte si on appuie sur la touche "shift"
     if (e.which === 16) {
         isShiftPressed = true;
@@ -270,14 +256,6 @@ document.addEventListener('keyup', function(e) {
     //detecte si on relache la touche "A"
     if (e.which === 65) {
         isLeftPressed = false;
-    }
-    //detecte si on relache la touche "1"
-    if (e.which === 49) {
-        isOnePressed = false;
-    }
-    //detecte si on relache la touche "2"
-    if (e.which === 50) {
-        isTwoPressed = false;
     }
     //detecte si on relache la touche "espace"
     if (e.which === 32) {
