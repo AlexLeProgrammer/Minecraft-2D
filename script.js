@@ -15,7 +15,6 @@ var isRightPressed = false;
 var isLeftPressed = false;
 var isUpPressed = false;
 var isDownPressed = false;
-var isShiftPressed = false;
 var isSpacePressed = false;
 var isClicked = false;
 var isRightClicked = false;
@@ -64,12 +63,22 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
+function isABloc(x, y) {
+    var result = false;
+    for (var i = 0; i < blockData.length; i++) {
+        if (blockData[i][0] == x && blockData[i][1] == y) {
+            result = true;
+        }
+    }
+    return result;
+}
+
 function loop() {
     console.log(mouseWorldPosX.toString() + " : " + mouseWorldPosY.toString());
 
     // calcul la position in-game du curseur
     mouseWorldPosX = mouseScreenPosX - (mouseWorldPosX < 0 ? BLOCKSIZE: 0) + cameraX;
-    mouseWorldPosY = mouseScreenPosY + cameraY;
+    mouseWorldPosY = mouseScreenPosY - (mouseWorldPosY < 0 ? BLOCKSIZE: 0) + cameraY;
 
     //arrondi l'emplacement de la souris sur la grille
     var blockX = parseInt(mouseWorldPosX / BLOCKSIZE) * BLOCKSIZE;
@@ -151,15 +160,15 @@ function loop() {
     context.drawImage(hotbarSelectorSprite, hotbarStartX + usedHotbarID * hotbarCellSize,
     canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
 
-    //si on clicke pose un bloc avec le bon type de bloc
-    if (isClicked) {
+    //poser bloc
+    if (isClicked && !isABloc(blockX, blockY)) {
         var newBlock = [blockX, blockY, hotbarContent[usedHotbarID]];
         blockData.push(newBlock);
     }
 
-    //detecte si la souris est au dessus d'un bloc et le suprimme si on appuie sur shift
+    //supprimer bloc
     for (var i = 0; i < blockData.length; i++) {
-        if (blockX == blockData[i][0] && blockY == blockData[i][1] && isShiftPressed) {
+        if (blockX == blockData[i][0] && blockY == blockData[i][1] && isRightClicked) {
             blockData.splice(i, 1);
         }
     }
@@ -230,10 +239,6 @@ document.addEventListener('keydown', function(e) {
     //detecte si on appuie sur la touche "A"
     if (e.which === 65) {
         isLeftPressed = true;
-    }
-    //detecte si on appuie sur la touche "shift"
-    if (e.which === 16) {
-        isShiftPressed = true;
     }
     //detecte si on appuie sur la touche "espace"
     if (e.which === 32) {
