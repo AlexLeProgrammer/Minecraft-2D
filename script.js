@@ -7,6 +7,7 @@ var context = canvas.getContext('2d');
 var playerX = -300;
 var playerY = 100;
 
+//variables des inputs
 var isRightPressed = false;
 var isLeftPressed = false;
 var isUpPressed = false;
@@ -15,40 +16,55 @@ var isShiftPressed = false;
 var isSpacePressed = false;
 var isClicked = false;
 var isRightClicked = false;
+var isOnePressed = false;
+var isTwoPressed = false;
 
 var moveSpeed = 5;
 
+//variables des images
 var playerSprite = new Image();
-playerSprite.src = 'player.png';
+playerSprite.src = 'sprites/player.png';
 
 var PNJSprite = new Image();
-PNJSprite.src = 'PNJ.png';
+PNJSprite.src = 'sprites/PNJ.png';
 
 var propsSprite = new Image();
-propsSprite.src = 'props.png';
+propsSprite.src = 'sprites/props.png';
 
 var cloudSprite = new Image();
-cloudSprite.src = 'cloud.png';
+cloudSprite.src = 'sprites/cloud.png';
 
-const GRAVITY_FORCE = 0.5;
+var woodenBlock = new Image();
+woodenBlock.src = 'sprites/woodPlank.png';
+
+var obsidianBlock = new Image();
+obsidianBlock.src = 'sprites/obsidianBlock.jpg';
+
+const GRAVITY_FORCE = 0.5; //le joueur saute de 4 block de haut avec un force de -15 et une gravite de 0.5
 var playerYVelocity = 0;
 
+//variable des plateformes
 var plateform = [[0, 500], [300, 300], [-100, 100], [300, -100], [-200, -300], [300, -500], [-200, -700], [400, -900], [-200, -1100],
- [200, -1300], [500, -1500], [0, -1700]];
+[200, -1300], [500, -1500], [0, -1700]];
 
-var blockPlaced = [];
+//variables des blocs
+var blockData = [];
 var blockX = 0;
 var blockY = 0;
+var blockId = 0;
 
 var gravity = true;
+
+
+//sens de deplacement de la 8e plateforme
+var plateformWay = true;
 
 var cameraX = 0;
 var cameraY = 0;
 
-var plateformWay = true;
-
 var mouseCanvasPoseX = 0;
 var mouseCanvasPoseY = 0;
+
 
 //permet de generer un nombre aleatoire
 function getRandomInt(min, max) {
@@ -68,6 +84,13 @@ function loop() {
         blockX = mouseCanvasPoseX + cameraX;
     }
 
+    //change de blockId si le joueur veut changer de bloc
+    if (isOnePressed) {
+        blockId = 0;
+    } else if (isTwoPressed) {
+        blockId = 1;
+    }
+    
     // clear le canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -129,27 +152,31 @@ function loop() {
     }
 
     //gere les blocs
-    for (var i = 0; i < blockPlaced.length; i++) {
-        //dessine les blocs
-        context.fillRect(blockPlaced[i][0] - cameraX, blockPlaced[i][1] - cameraY, 50, 50);
+    for (var i = 0; i < blockData.length; i++) {
+        //dessine les blocs avec le bon type de bloc
+        if (blockData[i][2] === 0) {
+            context.drawImage(woodenBlock, blockData[i][0] - cameraX, blockData[i][1] - cameraY, 50, 50);
+        } else {
+            context.drawImage(obsidianBlock, blockData[i][0] - cameraX, blockData[i][1] - cameraY, 50, 50);
+        }
 
         //empeche le joueur de tomber lorsqu'il est sur un bloc
-        if (playerY >= blockPlaced[i][1] - 130 && playerY <= blockPlaced[i][1] - 90 && playerX >= blockPlaced[i][0] - 60 && playerX <= blockPlaced[i][0] + 50 && playerYVelocity >= 0) {
+        if (playerY >= blockData[i][1] - 130 && playerY <= blockData[i][1] - 90 && playerX >= blockData[i][0] - 60 && playerX <= blockData[i][0] + 50 && playerYVelocity >= 0) {
             gravity = false;
         }
 
         //empeche le joueur de traverser un bloc par le bas
-        if (playerY >= blockPlaced[i][1] - 130 && playerY <= blockPlaced[i][1] + 50 && playerX >= blockPlaced[i][0] - 60 && playerX <= blockPlaced[i][0] + 50 && playerYVelocity < 0) {
+        if (playerY >= blockData[i][1] - 130 && playerY <= blockData[i][1] + 50 && playerX >= blockData[i][0] - 60 && playerX <= blockData[i][0] + 50 && playerYVelocity < 0) {
             playerYVelocity = 0;
         }
         
         //detecte si il y a un bloc à coté du joueur
         if (isRightPressed || isLeftPressed) {
-            if (playerY >= blockPlaced[i][1] - 110 && playerY <= blockPlaced[i][1] + 50 && playerX >= blockPlaced[i][0] - 60 && playerX <= blockPlaced[i][0] + 50) {
-                if ((playerX + 60 < blockPlaced[i][0] + 25)) {
+            if (playerY >= blockData[i][1] - 110 && playerY <= blockData[i][1] + 50 && playerX >= blockData[i][0] - 60 && playerX <= blockData[i][0] + 50) {
+                if ((playerX + 60 < blockData[i][0] + 25)) {
                     playerX -= moveSpeed;
                 }
-                if ((playerX > blockPlaced[i][0] + 25)) {
+                if ((playerX > blockData[i][0] + 25)) {
                      playerX += moveSpeed; 
                 }
             }    
@@ -181,24 +208,27 @@ function loop() {
     //creer le joueur
     context.drawImage(playerSprite, playerX - cameraX, playerY - cameraY);
         
-    //affiche l'emplacement ou le joueur va placer un bloc
-    context.fillStyle = "#A68A649C";
-    context.fillRect(mouseCanvasPoseX, mouseCanvasPoseY, 50, 50);
+    //affiche l'emplacement ou le joueur va placer un bloc avec le bon type de bloc
+    if (blockId === 0) {
+        context.drawImage(woodenBlock, mouseCanvasPoseX, mouseCanvasPoseY, 50, 50);
+    } else {
+        context.drawImage(obsidianBlock, mouseCanvasPoseX, mouseCanvasPoseY, 50, 50);
+    }
 
-    //si on clicke pose un bloc
+    //si on clicke pose un bloc avec le bon type de bloc
     if (isClicked) {
         var newBlock = [parseInt(blockX  / 50) * 50 + cameraX / 100,
-        parseInt(blockY  / 50) * 50 + cameraY / 100];
-        blockPlaced.push(newBlock);
+        parseInt(blockY  / 50) * 50 + cameraY / 100, blockId];
+        blockData.push(newBlock);
     }
 
     //detecte si la souris est au dessus d'un bloc et le suprimme si on appuie sur shift
-    for (var i = 0; i < blockPlaced.length; i++) {
-        if (parseInt(blockX  / 50) * 50 + cameraX / 100 >= blockPlaced[i][0] - 50 &&
-        parseInt(blockX  / 50) * 50 + cameraX / 100 <= blockPlaced[i][0] + 50 &&
-        parseInt(blockY  / 50) * 50 + cameraY / 100 >= blockPlaced[i][1] - 50 &&
-        parseInt(blockY  / 50) * 50 + cameraY / 100 <= blockPlaced[i][1] + 50 && isShiftPressed) {
-            blockPlaced.splice(i, 1);
+    for (var i = 0; i < blockData.length; i++) {
+        if (parseInt(blockX  / 50) * 50 + cameraX / 100 >= blockData[i][0] - 50 &&
+        parseInt(blockX  / 50) * 50 + cameraX / 100 <= blockData[i][0] + 50 &&
+        parseInt(blockY  / 50) * 50 + cameraY / 100 >= blockData[i][1] - 50 &&
+        parseInt(blockY  / 50) * 50 + cameraY / 100 <= blockData[i][1] + 50 && isShiftPressed) {
+            blockData.splice(i, 1);
         }
     }
     
@@ -232,28 +262,50 @@ canvas.addEventListener("mousemove", (e) => {
     }
   });
 
-//detecte si on clique
+//1 = 49, 9 = 57
 document.addEventListener('mousedown', function(e) {
-    console.log(e.which);
+    //detecte si on clique
     if (e.which === 1) {
         isClicked = true;
     }
-});
-//detecte si on clique droit
-document.addEventListener('mousedown', function(e) {
-    console.log(e.which);
+    //detecte si on clique droit
     if (e.which === 3) {
         isRightClicked = true;
     }
 });
 document.addEventListener('keydown', function(e) {
+    console.log(e.which);
     //detecte si on appuie sur la touche "droite"
     if (e.which === 39) {
+        isRightPressed = true;
+    }
+    //detecte si on appuie sur la touche "D"
+    if (e.which === 68) {
         isRightPressed = true;
     }
     //detecte si on appuie sur la touche "gauche"
     if (e.which === 37) {
         isLeftPressed = true;
+    }
+    //detecte si on appuie sur la touche "A"
+    if (e.which === 65) {
+        isLeftPressed = true;
+    }
+    //detecte si on appuie sur la touche "1"
+    if (e.which === 49) {
+        isOnePressed = true;
+    }
+    //detecte si on appuie sur la touche "2"
+    if (e.which === 50) {
+        isTwoPressed = true;
+    }
+    //detecte si on appuie sur la touche "shift"
+    if (e.which === 16) {
+        isShiftPressed = true;
+    }
+    //detecte si on appuie sur la touche "espace"
+    if (e.which === 32) {
+        isSpacePressed = true;
     }
 });
 document.addEventListener('keyup', function(e) {
@@ -261,52 +313,30 @@ document.addEventListener('keyup', function(e) {
     if (e.which === 39) {
         isRightPressed = false;
     }
-});
-document.addEventListener('keydown', function(e) {
-});
-
-document.addEventListener('keyup', function(e) {
+    //detecte si on relache la touche "D"
+    if (e.which === 68) {
+        isRightPressed = false;
+    }
+    //detecte si on relache la touche "gauche"
     if (e.which === 37) {
         isLeftPressed = false;
     }
-});
-//detecte si on appuie sur la touche "haut"
-document.addEventListener('keydown', function(e) {
-    if (e.which === 38) {
-        isUpPressed = true;
+    //detecte si on relache la touche "A"
+    if (e.which === 65) {
+        isLeftPressed = false;
     }
-});
-document.addEventListener('keyup', function(e) {
-    if (e.which === 38) {
-        isUpPressed = false;
+    //detecte si on relache la touche "1"
+    if (e.which === 49) {
+        isOnePressed = false;
     }
-});
-//detecte si on appuie sur la touche "bas"
-document.addEventListener('keydown', function(e) {
-    if (e.which === 40) {
-        isDownPressed = true;
+    //detecte si on relache la touche "2"
+    if (e.which === 50) {
+        isTwoPressed = false;
     }
-});
-document.addEventListener('keyup', function(e) {
-    if (e.which === 40) {
-        isDownPressed = false;
-    }
-});
-//detecte si on appuie sur la touche "shift"
-document.addEventListener('keydown', function(e) {
-    if (e.which === 16) {
-        isShiftPressed = true;
-    }
-});
-//detecte si on appuie sur la touche "espace"
-document.addEventListener('keydown', function(e) {
-    if (e.which === 32) {
-        isSpacePressed = true;
-    }
-});
-document.addEventListener('keyup', function(e) {
+    //detecte si on relache la touche "espace"
     if (e.which === 32) {
         isSpacePressed = false;
     }
 });
+
 requestAnimationFrame(loop);
