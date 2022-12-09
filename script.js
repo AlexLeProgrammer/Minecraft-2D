@@ -3,6 +3,9 @@
 var canvas = document.getElementById('game');
 var context = canvas.getContext('2d');
 
+// constantes
+const BLOCKSIZE = 50;
+
 //variables
 var playerX = -300;
 var playerY = 100;
@@ -12,12 +15,9 @@ var isRightPressed = false;
 var isLeftPressed = false;
 var isUpPressed = false;
 var isDownPressed = false;
-var isShiftPressed = false;
 var isSpacePressed = false;
 var isClicked = false;
 var isRightClicked = false;
-var isOnePressed = false;
-var isTwoPressed = false;
 
 var moveSpeed = 5;
 
@@ -25,45 +25,37 @@ var moveSpeed = 5;
 var playerSprite = new Image();
 playerSprite.src = 'sprites/player.png';
 
-var PNJSprite = new Image();
-PNJSprite.src = 'sprites/PNJ.png';
+var hotbarCellSprite = new Image();
+hotbarCellSprite.src = 'sprites/hotbarFrame.png';
+var hotbarSelectorSprite = new Image();
+hotbarSelectorSprite.src = 'sprites/hotbarSelector.png';
 
-var propsSprite = new Image();
-propsSprite.src = 'sprites/props.png';
+// textures des blocs
+var blockTextures = [new Image(), new Image()];
+blockTextures[0].src = 'sprites/woodPlank.png';
+blockTextures[1].src = 'sprites/obsidianBlock.jpg';
 
-var cloudSprite = new Image();
-cloudSprite.src = 'sprites/cloud.png';
-
-var woodenBlock = new Image();
-woodenBlock.src = 'sprites/woodPlank.png';
-
-var obsidianBlock = new Image();
-obsidianBlock.src = 'sprites/obsidianBlock.jpg';
+// hotbar
+var hotbarContent = [0, 1, 1, 1, 0, 0, 0, 1, 0];
 
 const GRAVITY_FORCE = 0.5; //le joueur saute de 4 block de haut avec un force de -15 et une gravite de 0.5
 var playerYVelocity = 0;
-
-//variable des plateformes
-var plateform = [[0, 500], [300, 300], [-100, 100], [300, -100], [-200, -300], [300, -500], [-200, -700], [400, -900], [-200, -1100],
-[200, -1300], [500, -1500], [0, -1700]];
 
 //variables des blocs
 var blockData = [];
 var blockX = 0;
 var blockY = 0;
-var blockId = 0;
+var usedHotbarID = 0;
 
 var gravity = true;
-
-
-//sens de deplacement de la 8e plateforme
-var plateformWay = true;
 
 var cameraX = 0;
 var cameraY = 0;
 
-var mouseCanvasPoseX = 0;
-var mouseCanvasPoseY = 0;
+var mouseScreenPosX = 0;
+var mouseScreenPosY = 0;
+var mouseWorldPosX = 0;
+var mouseWorldPosY = 0;
 
 
 //permet de generer un nombre aleatoire
@@ -71,38 +63,33 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
-function loop() {
-    //arrondi l'emplacement de la souris
-    if ((mouseCanvasPoseY + cameraY) % 50 >= 25) {
-        blockY = mouseCanvasPoseY + cameraY + 50;
-    } else {
-        blockY = mouseCanvasPoseY + cameraY;
+function isABloc(x, y) {
+    var result = false;
+    for (var i = 0; i < blockData.length; i++) {
+        if (blockData[i][0] == x && blockData[i][1] == y) {
+            result = true;
+        }
     }
-    if ((mouseCanvasPoseX + cameraX) % 50 >= 25) {
-        blockX = mouseCanvasPoseX + cameraX + 50;
-    } else {
-        blockX = mouseCanvasPoseX + cameraX;
-    }
+    return result;
+}
 
-    //change de blockId si le joueur veut changer de bloc
-    if (isOnePressed) {
-        blockId = 0;
-    } else if (isTwoPressed) {
-        blockId = 1;
-    }
+function loop() {
+    console.log(mouseWorldPosX.toString() + " : " + mouseWorldPosY.toString());
+
+    // calcul la position in-game du curseur
+    mouseWorldPosX = mouseScreenPosX - (mouseWorldPosX < 0 ? BLOCKSIZE: 0) + cameraX;
+    mouseWorldPosY = mouseScreenPosY - (mouseWorldPosY < 0 ? BLOCKSIZE: 0) + cameraY;
+
+    //arrondi l'emplacement de la souris sur la grille
+    var blockX = parseInt(mouseWorldPosX / BLOCKSIZE) * BLOCKSIZE;
+    var blockY = parseInt(mouseWorldPosY / BLOCKSIZE) * BLOCKSIZE;
     
     // clear le canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
-    
-    //dessine les decors
-    context.drawImage(propsSprite, -500 - cameraX,  37 - cameraY);
 
     //dessine le sol
-    context.fillStyle = "#656D4A";
-    context.fillRect(0, canvas.height - cameraY, canvas.width, canvas.height);
-    
-    //dessine les nuages
-    context.drawImage(cloudSprite, -100 - cameraX,  -2000 - cameraY);
+    context.fillStyle = "#1CDF1F";
+    context.fillRect(0, canvas.height - cameraY - 40, canvas.width, canvas.height);
 
     //setup la camera
     cameraX += (playerX - canvas.width / 2 - cameraX + 30) / 30;
@@ -115,50 +102,10 @@ function loop() {
         gravity = false;
     }
 
-    //gere les plateformes
-    context.fillStyle = "#A68A64";
-    for (var i = 0; i < 12; i++) {
-        //dessine les plateformes
-        context.fillRect(plateform[i][0] - cameraX, plateform[i][1] - cameraY, 200, 100);
-        
-        //empeche le joueur de tomber lorsqu'il est sur une plateforme
-        if (playerY >= plateform[i][1] - 130 && playerY <= plateform[i][1] - 90 && playerX >= plateform[i][0] - 60 && playerX <= plateform[i][0] + 200 && playerYVelocity >= 0) {
-            gravity = false;
-            if (i === 7) {
-                if (plateformWay === true) {
-                    playerX += 3;
-                } else {
-                    playerX -= 3;
-                }
-            }
-        }
-
-        //empeche le joueur de traverser une plateforme par le bas
-        if (playerY >= plateform[i][1] - 130 && playerY <= plateform[i][1] + 100 && playerX >= plateform[i][0] - 60 && playerX <= plateform[i][0] + 200 && playerYVelocity < 0) {
-            playerYVelocity = 0;
-        }
-        
-        //detecte si il y a une plateforme à coté du joueur
-        if (isRightPressed || isLeftPressed) {
-            if (playerY >= plateform[i][1] - 120 && playerY <= plateform[i][1] + 100 && playerX >= plateform[i][0] - 60 && playerX <= plateform[i][0] + 200) {
-                if (playerX + 60 < plateform[i][0] + 100) {
-                    playerX -= moveSpeed; 
-                }
-                if (playerX > plateform[i][0] + 100) {
-                     playerX += moveSpeed; 
-                }
-            }    
-        }
-    }
-
     //gere les blocs
     for (var i = 0; i < blockData.length; i++) {
-        //dessine les blocs avec le bon type de bloc
-        if (blockData[i][2] === 0) {
-            context.drawImage(woodenBlock, blockData[i][0] - cameraX, blockData[i][1] - cameraY, 50, 50);
-        } else {
-            context.drawImage(obsidianBlock, blockData[i][0] - cameraX, blockData[i][1] - cameraY, 50, 50);
-        }
+        //dessine les blocs
+        context.drawImage(blockTextures[blockData[i][2]], blockData[i][0] - cameraX, blockData[i][1] - cameraY, 50, 50);
 
         //empeche le joueur de tomber lorsqu'il est sur un bloc
         if (playerY >= blockData[i][1] - 130 && playerY <= blockData[i][1] - 90 && playerX >= blockData[i][0] - 60 && playerX <= blockData[i][0] + 50 && playerYVelocity >= 0) {
@@ -183,51 +130,45 @@ function loop() {
         }
     }
 
-    //deplace la 8e plateforme
-    if (plateformWay && plateform[7][0] >= 500)  {
-        plateformWay = false;
-    } else if (plateformWay == false && plateform[7][0] <= 150)  {
-        plateformWay = true;
-    } 
-    if (plateform[7][0] < 500 && plateformWay) {
-        plateform[7][0] += 3;
-    } else if (plateform[7][0] > 150 && plateformWay == false) {
-        plateform[7][0] -= 3;
-    }
-
     //applique la gravite sur la velocite du joueur
     if (gravity === true) {
         playerYVelocity += GRAVITY_FORCE;
     } else {
         playerYVelocity = 0;
     }
-
-    //creer le PNJ
-    context.drawImage(PNJSprite, -1000 - cameraX, 530 - cameraY);
     
     //creer le joueur
     context.drawImage(playerSprite, playerX - cameraX, playerY - cameraY);
         
-    //affiche l'emplacement ou le joueur va placer un bloc avec le bon type de bloc
-    if (blockId === 0) {
-        context.drawImage(woodenBlock, mouseCanvasPoseX, mouseCanvasPoseY, 50, 50);
-    } else {
-        context.drawImage(obsidianBlock, mouseCanvasPoseX, mouseCanvasPoseY, 50, 50);
-    }
+    //affiche l'emplacement ou le joueur va placer un bloc
+    context.strokeSytle = "black";
+    context.lineWidth = 3;
+    context.strokeRect(blockX - cameraX, blockY - cameraY, 50, 50);
 
-    //si on clicke pose un bloc avec le bon type de bloc
-    if (isClicked) {
-        var newBlock = [parseInt(blockX  / 50) * 50 + cameraX / 100,
-        parseInt(blockY  / 50) * 50 + cameraY / 100, blockId];
+    // dessine la hotbar
+    var hotbarCellSize = 50;
+    var hotbarHeight = 20;
+    var itemsMargin = 10;
+    var hotbarStartX = canvas.width / 2 - hotbarCellSize * 9 / 2;
+    for (var cellIndex = 0; cellIndex < 9; cellIndex ++) {
+        context.drawImage(hotbarCellSprite, hotbarStartX + cellIndex * hotbarCellSize,
+        canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
+
+        context.drawImage(blockTextures[hotbarContent[cellIndex]], hotbarStartX + cellIndex * hotbarCellSize + itemsMargin,
+        canvas.height - hotbarCellSize - hotbarHeight + itemsMargin, hotbarCellSize - 2 * itemsMargin, hotbarCellSize - 2 * itemsMargin);
+    }
+    context.drawImage(hotbarSelectorSprite, hotbarStartX + usedHotbarID * hotbarCellSize,
+    canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
+
+    //poser bloc
+    if (isClicked && !isABloc(blockX, blockY)) {
+        var newBlock = [blockX, blockY, hotbarContent[usedHotbarID]];
         blockData.push(newBlock);
     }
 
-    //detecte si la souris est au dessus d'un bloc et le suprimme si on appuie sur shift
+    //supprimer bloc
     for (var i = 0; i < blockData.length; i++) {
-        if (parseInt(blockX  / 50) * 50 + cameraX / 100 >= blockData[i][0] - 50 &&
-        parseInt(blockX  / 50) * 50 + cameraX / 100 <= blockData[i][0] + 50 &&
-        parseInt(blockY  / 50) * 50 + cameraY / 100 >= blockData[i][1] - 50 &&
-        parseInt(blockY  / 50) * 50 + cameraY / 100 <= blockData[i][1] + 50 && isShiftPressed) {
+        if (blockX == blockData[i][0] && blockY == blockData[i][1] && isRightClicked) {
             blockData.splice(i, 1);
         }
     }
@@ -257,13 +198,20 @@ function loop() {
 canvas.addEventListener("mousemove", (e) => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    mouseCanvasPoseX = e.clientX;
-    mouseCanvasPoseY = e.clientY;
-    if (mouseCanvasPoseY + cameraY + 30 >= canvas.height - 25) {
-        mouseCanvasPoseY = canvas.height - cameraY - 55;
+    mouseScreenPosX = e.clientX;
+    mouseScreenPosY = e.clientY;
+});
+//molette
+canvas.addEventListener("wheel", (e) => {
+    if (e.deltaY < 0) {
+        usedHotbarID --;
     }
-    console.log(window.innerWidth.toString() + " : " + window.innerHeight.toString());
-  });
+    if (e.deltaY > 0) {
+        usedHotbarID ++;
+    }
+    if (usedHotbarID < 0) { usedHotbarID = 8; }
+    if (usedHotbarID > 8) { usedHotbarID = 0; }
+});
 
 //1 = 49, 9 = 57
 document.addEventListener('mousedown', function(e) {
@@ -277,8 +225,6 @@ document.addEventListener('mousedown', function(e) {
     }
 });
 document.addEventListener('keydown', function(e) {
-    console.log(e.which);
-    //detecte si on appuie sur la touche "droite"
     if (e.which === 39) {
         isRightPressed = true;
     }
@@ -293,18 +239,6 @@ document.addEventListener('keydown', function(e) {
     //detecte si on appuie sur la touche "A"
     if (e.which === 65) {
         isLeftPressed = true;
-    }
-    //detecte si on appuie sur la touche "1"
-    if (e.which === 49) {
-        isOnePressed = true;
-    }
-    //detecte si on appuie sur la touche "2"
-    if (e.which === 50) {
-        isTwoPressed = true;
-    }
-    //detecte si on appuie sur la touche "shift"
-    if (e.which === 16) {
-        isShiftPressed = true;
     }
     //detecte si on appuie sur la touche "espace"
     if (e.which === 32) {
@@ -327,14 +261,6 @@ document.addEventListener('keyup', function(e) {
     //detecte si on relache la touche "A"
     if (e.which === 65) {
         isLeftPressed = false;
-    }
-    //detecte si on relache la touche "1"
-    if (e.which === 49) {
-        isOnePressed = false;
-    }
-    //detecte si on relache la touche "2"
-    if (e.which === 50) {
-        isTwoPressed = false;
     }
     //detecte si on relache la touche "espace"
     if (e.which === 32) {
