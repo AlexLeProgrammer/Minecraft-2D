@@ -1,6 +1,6 @@
 # Adventure-Game
 ⛏️ A minecraft clone in 2d by Alex & Arsène \
-✏️ Made in javascript % HTML5
+✏️ Made in javascript & HTML5
 
 # 🔀Controls
 * AD or Arrows to move
