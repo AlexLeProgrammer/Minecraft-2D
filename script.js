@@ -74,8 +74,6 @@ function isABloc(x, y) {
 }
 
 function loop() {
-    console.log(mouseWorldPosX.toString() + " : " + mouseWorldPosY.toString());
-
     // calcul la position in-game du curseur
     mouseWorldPosX = mouseScreenPosX - (mouseWorldPosX < 0 ? BLOCKSIZE: 0) + cameraX;
     mouseWorldPosY = mouseScreenPosY - (mouseWorldPosY < 0 ? BLOCKSIZE: 0) + cameraY;
