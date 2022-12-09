@@ -5,6 +5,7 @@ var context = canvas.getContext('2d');
 
 // constantes
 const BLOCKSIZE = 50;
+const GRAVITY_FORCE = 0.5; //le joueur saute de 4 block de haut avec un force de -15 et une gravite de 0.5
 
 //variables
 var playerX = -300;
@@ -19,7 +20,9 @@ var isSpacePressed = false;
 var isClicked = false;
 var isRightClicked = false;
 
+//mouvement du joueur
 var moveSpeed = 5;
+var playerYVelocity = 0;
 
 //variables des images
 var playerSprite = new Image();
@@ -38,11 +41,9 @@ blockTextures[1].src = 'sprites/obsidianBlock.jpg';
 // hotbar
 var hotbarContent = [0, 1, 1, 1, 0, 0, 0, 1, 0];
 
-const GRAVITY_FORCE = 0.5; //le joueur saute de 4 block de haut avec un force de -15 et une gravite de 0.5
-var playerYVelocity = 0;
 
 //variables des blocs
-var blockData = [];
+var blockData = [[parseInt(10 / BLOCKSIZE) * BLOCKSIZE, parseInt(canvas.height / 2 / BLOCKSIZE) * BLOCKSIZE / 2, 0]];
 var blockX = 0;
 var blockY = 0;
 var usedHotbarID = 0;
@@ -74,8 +75,6 @@ function isABloc(x, y) {
 }
 
 function loop() {
-    console.log(mouseWorldPosX.toString() + " : " + mouseWorldPosY.toString());
-
     // calcul la position in-game du curseur
     mouseWorldPosX = mouseScreenPosX - (mouseWorldPosX < 0 ? BLOCKSIZE: 0) + cameraX;
     mouseWorldPosY = mouseScreenPosY - (mouseWorldPosY < 0 ? BLOCKSIZE: 0) + cameraY;
@@ -162,9 +161,13 @@ function loop() {
 
     //poser bloc
     if (isClicked && !isABloc(blockX, blockY)) {
-        var newBlock = [blockX, blockY, hotbarContent[usedHotbarID]];
-        blockData.push(newBlock);
+        //permet au joueur de poser un bloc uniquement a cote d'un autre bloc
+        if (isABloc(blockX, blockY + 50) || isABloc(blockX, blockY - 50) || isABloc(blockX + 50, blockY) || isABloc(blockX - 50, blockY)) {
+            var newBlock = [blockX, blockY, hotbarContent[usedHotbarID]];
+            blockData.push(newBlock);
+        }
     }
+
 
     //supprimer bloc
     for (var i = 0; i < blockData.length; i++) {
@@ -200,6 +203,9 @@ canvas.addEventListener("mousemove", (e) => {
     canvas.height = window.innerHeight;
     mouseScreenPosX = e.clientX;
     mouseScreenPosY = e.clientY;
+    if (mouseScreenPosY + cameraY >= canvas.height - canvas.height / 8) {
+        mouseScreenPosY = canvas.height / 2 + canvas.height / 8;
+    }
 });
 //molette
 canvas.addEventListener("wheel", (e) => {
