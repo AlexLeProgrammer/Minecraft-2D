@@ -1,5 +1,5 @@
-//jeu de plateforme javascript
-//Auteur : Alex Etienne
+//Copie de Minecraft en 2D
+//Auteur : Alex Etienne & Arsène Brosy
 var canvas = document.getElementById('game');
 var context = canvas.getContext('2d');
 
@@ -8,19 +8,18 @@ const BLOCKSIZE = 50;
 const GRAVITY_FORCE = 0.5; //le joueur saute de 4 block de haut avec un force de -15 et une gravite de 0.5
 
 //variables
-var playerX = -300;
-var playerY = 100;
+var playerX = 0;
+var playerY = 550;
 
 //variables des inputs
 var isRightPressed = false;
 var isLeftPressed = false;
-var isUpPressed = false;
-var isDownPressed = false;
-var isSpacePressed = false;
 var isClicked = false;
 var isRightClicked = false;
 
 //mouvement du joueur
+var playerWidth = 50;
+var playerHeight = 85;
 var moveSpeed = 5;
 var playerYVelocity = 0;
 
@@ -41,7 +40,6 @@ blockTextures[1].src = 'sprites/obsidianBlock.jpg';
 // hotbar
 var hotbarContent = [0, 1, 1, 1, 0, 0, 0, 1, 0];
 
-
 //variables des blocs
 var blockData = [];
 var blockX = 0;
@@ -60,7 +58,6 @@ var mouseScreenPosY = 0;
 var mouseWorldPosX = 0;
 var mouseWorldPosY = 0;
 
-
 //permet de generer un nombre aleatoire
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
@@ -76,7 +73,38 @@ function isABloc(x, y) {
     return result;
 }
 
+function groundDistance(x, y, width) {
+    // setup variables
+    var result = 550 - y;
+    var alreadyUsed = [];
+    for(var i = 0; i < blockData.length; i++) {
+        alreadyUsed.push(false);
+    }
+    //verifie chaque block du plus bas au plus haut
+    for(var i = 0; i < blockData.length; i++) {
+        var lowestBlocId = 0;
+        var lowestBlocY = 0;
+        for(var bloc = 0; bloc < blockData.length; bloc++) {
+            // a-t-il deja été pris en compte
+            var isAlreadyUsed = alreadyUsed[bloc];
+            if(blockData[bloc][1] > lowestBlocY && !isAlreadyUsed) {
+                lowestBlocY = blockData[bloc][1];
+                lowestBlocId = bloc;
+            }
+        }
+        // verifie si le joueur est dessus
+        if(x + width / 2 >= blockData[lowestBlocId][0] && x - width / 2 <= blockData[lowestBlocId][0] + BLOCKSIZE && y - 20 <= blockData[lowestBlocId][1]) {
+            result = blockData[lowestBlocId][1] - y;
+        }
+        alreadyUsed[lowestBlocId] = true;
+    }
+    return result;
+}
+
 function loop() {
+    canvas.width = window.innerWidth - 1;
+    canvas.height = window.innerHeight - 1;
+
     // calcul la position in-game du curseur
     mouseWorldPosX = mouseScreenPosX - (mouseWorldPosX < 0 ? BLOCKSIZE: 0) + cameraX;
     mouseWorldPosY = mouseScreenPosY - (mouseWorldPosY < 0 ? BLOCKSIZE: 0) + cameraY;
@@ -84,7 +112,31 @@ function loop() {
     // arrondi l'emplacement de la souris sur la grille
     var blockX = parseInt(mouseWorldPosX / BLOCKSIZE) * BLOCKSIZE;
     var blockY = parseInt(mouseWorldPosY / BLOCKSIZE) * BLOCKSIZE;
+
+    //deplace la camera
+    cameraX += (playerX - canvas.width / 2 - cameraX) / 30;
+    cameraY += (playerY - canvas.height / 2 - cameraY) / 30;
     
+    //#region PHISIQUES
+    // vertical
+    if (groundDistance(playerX, playerY + playerHeight / 2, playerWidth) < playerYVelocity && playerYVelocity > 0) {
+        playerYVelocity = 0;
+        playerY += groundDistance(playerX, playerY + playerHeight / 2, playerWidth);
+    } else {
+        playerYVelocity += GRAVITY_FORCE;
+    }
+    playerY += playerYVelocity;
+
+    // horizontal
+    if (isRightPressed && !isABloc(parseInt((playerX + playerWidth / 2) / BLOCKSIZE) * BLOCKSIZE, parseInt(playerY / BLOCKSIZE) * BLOCKSIZE)) {
+        playerX += moveSpeed;
+    }
+    if  (isLeftPressed && !isABloc(parseInt((playerX - playerWidth / 2) / BLOCKSIZE) * BLOCKSIZE, parseInt(playerY / BLOCKSIZE) * BLOCKSIZE)) {
+        playerX -= moveSpeed;
+    }
+    //#endregion
+
+    //#region AFFICHAGE
     // clear le canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -92,56 +144,15 @@ function loop() {
     context.fillStyle = "#1CDF1F";
     context.fillRect(0, canvas.height - cameraY - 40, canvas.width, canvas.height);
 
-    //setup la camera
-    cameraX += (playerX - canvas.width / 2 - cameraX + 30) / 30;
-    cameraY += (playerY - canvas.height / 2 - cameraY) / 30;
-    
-    //desactive la gravite si le joueur est sur le sol
-    if (playerY < 550) {
-        gravity = true;
-    } else {
-        gravity = false;
-    }
-
-    //gere les blocs
+    // dessine les blocs
     for (var i = 0; i < blockData.length; i++) {
-        //dessine les blocs
         context.drawImage(blockTextures[blockData[i][2]], blockData[i][0] - cameraX, blockData[i][1] - cameraY, 50, 50);
-
-        //empeche le joueur de tomber lorsqu'il est sur un bloc
-        if (playerY >= blockData[i][1] - 130 && playerY <= blockData[i][1] - 90 && playerX >= blockData[i][0] - 60 && playerX <= blockData[i][0] + 50 && playerYVelocity >= 0) {
-            gravity = false;
-        }
-
-        //empeche le joueur de traverser un bloc par le bas
-        if (playerY >= blockData[i][1] - 130 && playerY <= blockData[i][1] + 50 && playerX >= blockData[i][0] - 60 && playerX <= blockData[i][0] + 50 && playerYVelocity < 0) {
-            playerYVelocity = 0;
-        }
-        
-        //detecte si il y a un bloc à coté du joueur
-        if (isRightPressed || isLeftPressed) {
-            if (playerY >= blockData[i][1] - 110 && playerY <= blockData[i][1] + 50 && playerX >= blockData[i][0] - 60 && playerX <= blockData[i][0] + 50) {
-                if ((playerX + 60 < blockData[i][0] + 25)) {
-                    playerX -= moveSpeed;
-                }
-                if ((playerX > blockData[i][0] + 25)) {
-                     playerX += moveSpeed; 
-                }
-            }    
-        }
-    }
-
-    //applique la gravite sur la velocite du joueur
-    if (gravity === true) {
-        playerYVelocity += GRAVITY_FORCE;
-    } else {
-        playerYVelocity = 0;
     }
     
-    //creer le joueur
-    context.drawImage(playerSprite, playerX - cameraX, playerY - cameraY);
+    // dessine le joueur
+    context.drawImage(playerSprite, playerX - cameraX - playerWidth / 2, playerY - cameraY - playerHeight / 2, playerWidth, playerHeight);
         
-    //affiche l'emplacement ou le joueur va placer un bloc
+    // dessines le carré noir
     context.strokeSytle = "black";
     context.lineWidth = 3;
     context.strokeRect(blockX - cameraX, blockY - cameraY, 50, 50);
@@ -163,7 +174,9 @@ function loop() {
     // selecteur
     context.drawImage(hotbarSelectorSprite, hotbarStartX + usedHotbarID * hotbarCellSize,
     canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
+    //#endregion
 
+    //#region POSER/CASSER
     //poser bloc
     if (isClicked && !isABloc(blockX, blockY)) {
         //permet au joueur de poser un bloc uniquement a cote d'un autre bloc
@@ -174,37 +187,21 @@ function loop() {
         }
     }
 
-
-    //supprimer bloc
+    //casser bloc
     for (var i = 0; i < blockData.length; i++) {
         if (blockX == blockData[i][0] && blockY == blockData[i][1] && isRightClicked) {
             blockData.splice(i, 1);
         }
     }
-    
-    //detecte dans quelle direction le joueur veut se deplacer
-    if (isRightPressed) {
-        playerX += moveSpeed;
-    }
-    if  (isLeftPressed) {
-        playerX -= moveSpeed;
-    }
-    if ((playerY > 550 || gravity === false) && isSpacePressed) {
-        playerYVelocity = -15;
-    }
-
-    //fait tomber ou sauter le joueur
-    playerY += playerYVelocity;
+    //#endregion
 
     isClicked = false;
     isRightClicked = false;
     requestAnimationFrame(loop);
 }
 
-//recupere la position de la souris
+//position de la souris
 canvas.addEventListener("mousemove", (e) => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
     mouseScreenPosX = e.clientX;
     mouseScreenPosY = e.clientY;
     if (mouseScreenPosY >= canvas.height - cameraY * 1.5) {
@@ -222,8 +219,6 @@ canvas.addEventListener("wheel", (e) => {
     if (usedHotbarID < 0) { usedHotbarID = 8; }
     if (usedHotbarID > 8) { usedHotbarID = 0; }
 });
-
-//1 = 49, 9 = 57
 document.addEventListener('mousedown', function(e) {
     //detecte si on clique
     if (e.which === 1) {
@@ -235,47 +230,29 @@ document.addEventListener('mousedown', function(e) {
     }
 });
 document.addEventListener('keydown', function(e) {
-    if (e.which === 39) {
+    // droite
+    if (e.which === 39 || e.which == 68) {
         isRightPressed = true;
     }
-    //detecte si on appuie sur la touche "D"
-    if (e.which === 68) {
-        isRightPressed = true;
-    }
-    //detecte si on appuie sur la touche "gauche"
-    if (e.which === 37) {
+    // gauche
+    if (e.which === 37 || e.which == 65) {
         isLeftPressed = true;
     }
-    //detecte si on appuie sur la touche "A"
-    if (e.which === 65) {
-        isLeftPressed = true;
-    }
-    //detecte si on appuie sur la touche "espace"
-    if (e.which === 32) {
-        isSpacePressed = true;
+    // saut
+    if (e.which === 32 && groundDistance(playerX, playerY + playerHeight / 2, playerWidth) <= 5) {
+        playerYVelocity = -15;
     }
 });
 document.addEventListener('keyup', function(e) {
-    //detecte si on relache la touche "droite"
-    if (e.which === 39) {
+    // droite
+    if (e.which === 39 || e.which == 68) {
         isRightPressed = false;
     }
-    //detecte si on relache la touche "D"
-    if (e.which === 68) {
-        isRightPressed = false;
-    }
-    //detecte si on relache la touche "gauche"
-    if (e.which === 37) {
+    // gauche
+    if (e.which === 37 || e.which == 65) {
         isLeftPressed = false;
-    }
-    //detecte si on relache la touche "A"
-    if (e.which === 65) {
-        isLeftPressed = false;
-    }
-    //detecte si on relache la touche "espace"
-    if (e.which === 32) {
-        isSpacePressed = false;
     }
 });
 
+// demarre le jeu
 requestAnimationFrame(loop);
