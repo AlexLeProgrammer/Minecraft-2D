@@ -43,10 +43,12 @@ var hotbarContent = [0, 1, 1, 1, 0, 0, 0, 1, 0];
 
 
 //variables des blocs
-var blockData = [[parseInt(10 / BLOCKSIZE) * BLOCKSIZE, parseInt(canvas.height / 2 / BLOCKSIZE) * BLOCKSIZE / 2, 0]];
+var blockData = [];
 var blockX = 0;
 var blockY = 0;
 var usedHotbarID = 0;
+
+var canPlaceAir = true;
 
 var gravity = true;
 
@@ -79,7 +81,7 @@ function loop() {
     mouseWorldPosX = mouseScreenPosX - (mouseWorldPosX < 0 ? BLOCKSIZE: 0) + cameraX;
     mouseWorldPosY = mouseScreenPosY - (mouseWorldPosY < 0 ? BLOCKSIZE: 0) + cameraY;
 
-    //arrondi l'emplacement de la souris sur la grille
+    // arrondi l'emplacement de la souris sur la grille
     var blockX = parseInt(mouseWorldPosX / BLOCKSIZE) * BLOCKSIZE;
     var blockY = parseInt(mouseWorldPosY / BLOCKSIZE) * BLOCKSIZE;
     
@@ -150,20 +152,23 @@ function loop() {
     var itemsMargin = 10;
     var hotbarStartX = canvas.width / 2 - hotbarCellSize * 9 / 2;
     for (var cellIndex = 0; cellIndex < 9; cellIndex ++) {
+        // case
         context.drawImage(hotbarCellSprite, hotbarStartX + cellIndex * hotbarCellSize,
         canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
 
+        // item
         context.drawImage(blockTextures[hotbarContent[cellIndex]], hotbarStartX + cellIndex * hotbarCellSize + itemsMargin,
         canvas.height - hotbarCellSize - hotbarHeight + itemsMargin, hotbarCellSize - 2 * itemsMargin, hotbarCellSize - 2 * itemsMargin);
     }
+    // selecteur
     context.drawImage(hotbarSelectorSprite, hotbarStartX + usedHotbarID * hotbarCellSize,
     canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
 
     //poser bloc
     if (isClicked && !isABloc(blockX, blockY)) {
         //permet au joueur de poser un bloc uniquement a cote d'un autre bloc
-        if (isABloc(blockX, blockY + 50) || isABloc(blockX, blockY - 50) || isABloc(blockX + 50, blockY) || isABloc(blockX - 50, blockY) ||
-            mouseScreenPosY >= canvas.height - cameraY * 1.5) {
+        if (isABloc(blockX, blockY + BLOCKSIZE) || isABloc(blockX, blockY - BLOCKSIZE) || isABloc(blockX + BLOCKSIZE, blockY) || isABloc(blockX - BLOCKSIZE, blockY) ||
+            mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
             var newBlock = [blockX, blockY, hotbarContent[usedHotbarID]];
             blockData.push(newBlock);
         }
@@ -193,8 +198,6 @@ function loop() {
 
     isClicked = false;
     isRightClicked = false;
-    isShiftPressed = false;
-    isOnBlock = false;
     requestAnimationFrame(loop);
 }
 
