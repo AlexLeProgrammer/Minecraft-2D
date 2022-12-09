@@ -7,6 +7,7 @@ var context = canvas.getContext('2d');
 var playerX = -300;
 var playerY = 100;
 
+//variables des inputs
 var isRightPressed = false;
 var isLeftPressed = false;
 var isUpPressed = false;
@@ -20,45 +21,50 @@ var isTwoPressed = false;
 
 var moveSpeed = 5;
 
+//variables des images
 var playerSprite = new Image();
-playerSprite.src = 'player.png';
+playerSprite.src = 'sprites/player.png';
 
 var PNJSprite = new Image();
-PNJSprite.src = 'PNJ.png';
+PNJSprite.src = 'sprites/PNJ.png';
 
 var propsSprite = new Image();
-propsSprite.src = 'props.png';
+propsSprite.src = 'sprites/props.png';
 
 var cloudSprite = new Image();
-cloudSprite.src = 'cloud.png';
+cloudSprite.src = 'sprites/cloud.png';
 
 var woodenBlock = new Image();
-woodenBlock.src = 'woodPlank.png';
+woodenBlock.src = 'sprites/woodPlank.png';
 
 var obsidianBlock = new Image();
-obsidianBlock.src = 'obsidianBlock.jpg';
+obsidianBlock.src = 'sprites/obsidianBlock.jpg';
 
 const GRAVITY_FORCE = 0.5; //le joueur saute de 4 block de haut avec un force de -15 et une gravite de 0.5
 var playerYVelocity = 0;
 
+//variable des plateformes
 var plateform = [[0, 500], [300, 300], [-100, 100], [300, -100], [-200, -300], [300, -500], [-200, -700], [400, -900], [-200, -1100],
- [200, -1300], [500, -1500], [0, -1700]];
+[200, -1300], [500, -1500], [0, -1700]];
 
+//variables des blocs
 var blockData = [];
 var blockX = 0;
 var blockY = 0;
+var blockId = 0;
 
 var gravity = true;
+
+
+//sens de deplacement de la 8e plateforme
+var plateformWay = true;
 
 var cameraX = 0;
 var cameraY = 0;
 
-var plateformWay = true;
-
 var mouseCanvasPoseX = 0;
 var mouseCanvasPoseY = 0;
 
-var blockId = 0;
 
 //permet de generer un nombre aleatoire
 function getRandomInt(min, max) {
@@ -273,8 +279,16 @@ document.addEventListener('keydown', function(e) {
     if (e.which === 39) {
         isRightPressed = true;
     }
+    //detecte si on appuie sur la touche "D"
+    if (e.which === 68) {
+        isRightPressed = true;
+    }
     //detecte si on appuie sur la touche "gauche"
     if (e.which === 37) {
+        isLeftPressed = true;
+    }
+    //detecte si on appuie sur la touche "A"
+    if (e.which === 65) {
         isLeftPressed = true;
     }
     //detecte si on appuie sur la touche "1"
@@ -285,14 +299,30 @@ document.addEventListener('keydown', function(e) {
     if (e.which === 50) {
         isTwoPressed = true;
     }
+    //detecte si on appuie sur la touche "shift"
+    if (e.which === 16) {
+        isShiftPressed = true;
+    }
+    //detecte si on appuie sur la touche "espace"
+    if (e.which === 32) {
+        isSpacePressed = true;
+    }
 });
 document.addEventListener('keyup', function(e) {
     //detecte si on relache la touche "droite"
     if (e.which === 39) {
         isRightPressed = false;
     }
-    //detecte si on relache la touche "droite"
+    //detecte si on relache la touche "D"
+    if (e.which === 68) {
+        isRightPressed = false;
+    }
+    //detecte si on relache la touche "gauche"
     if (e.which === 37) {
+        isLeftPressed = false;
+    }
+    //detecte si on relache la touche "A"
+    if (e.which === 65) {
         isLeftPressed = false;
     }
     //detecte si on relache la touche "1"
@@ -303,44 +333,10 @@ document.addEventListener('keyup', function(e) {
     if (e.which === 50) {
         isTwoPressed = false;
     }
-});
-//detecte si on appuie sur la touche "haut"
-document.addEventListener('keydown', function(e) {
-    if (e.which === 38) {
-        isUpPressed = true;
-    }
-});
-document.addEventListener('keyup', function(e) {
-    if (e.which === 38) {
-        isUpPressed = false;
-    }
-});
-//detecte si on appuie sur la touche "bas"
-document.addEventListener('keydown', function(e) {
-    if (e.which === 40) {
-        isDownPressed = true;
-    }
-});
-document.addEventListener('keyup', function(e) {
-    if (e.which === 40) {
-        isDownPressed = false;
-    }
-});
-//detecte si on appuie sur la touche "shift"
-document.addEventListener('keydown', function(e) {
-    if (e.which === 16) {
-        isShiftPressed = true;
-    }
-});
-//detecte si on appuie sur la touche "espace"
-document.addEventListener('keydown', function(e) {
-    if (e.which === 32) {
-        isSpacePressed = true;
-    }
-});
-document.addEventListener('keyup', function(e) {
+    //detecte si on relache la touche "espace"
     if (e.which === 32) {
         isSpacePressed = false;
     }
 });
+
 requestAnimationFrame(loop);
