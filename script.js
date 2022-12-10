@@ -18,7 +18,7 @@ var isClicked = false;
 var isRightClicked = false;
 
 //mouvement du joueur
-var playerWidth = 50;
+var playerWidth = 42.5;
 var playerHeight = 85;
 var moveSpeed = 5;
 var playerYVelocity = 0;
@@ -33,12 +33,13 @@ var hotbarSelectorSprite = new Image();
 hotbarSelectorSprite.src = 'sprites/hotbarSelector.png';
 
 // textures des blocs
-var blockTextures = [new Image(), new Image()];
+var blockTextures = [new Image(), new Image(), new Image()];
 blockTextures[0].src = 'sprites/woodPlank.png';
 blockTextures[1].src = 'sprites/obsidianBlock.jpg';
+blockTextures[2].src = 'sprites/flintandsteel.png';
 
 // hotbar
-var hotbarContent = [0, 1, 1, 1, 0, 0, 0, 1, 0];
+var hotbarContent = [0, 1, 1, 1, 0, 2, 0, 1, 0];
 
 //variables des blocs
 var blockData = [];
@@ -66,7 +67,7 @@ function getRandomInt(min, max) {
 function isABloc(x, y) {
     var result = false;
     for (var i = 0; i < blockData.length; i++) {
-        if (blockData[i][0] == x && blockData[i][1] == y) {
+        if (blockData[i][0] <= x && blockData[i][0] + BLOCKSIZE >= x && blockData[i][1] <= y && blockData[i][1] + BLOCKSIZE >= y) {
             result = true;
         }
     }
@@ -101,6 +102,34 @@ function groundDistance(x, y, width) {
     return result;
 }
 
+function ceilDistance(x, y, width) {
+    // setup variables
+    var result = 1000;
+    var alreadyUsed = [];
+    for(var i = 0; i < blockData.length; i++) {
+        alreadyUsed.push(false);
+    }
+    //verifie chaque block du plus haut au plus bas
+    for(var i = 0; i < blockData.length; i++) {
+        var highestBlocId = 0;
+        var heighestBlocY = 0;
+        for(var bloc = 0; bloc < blockData.length; bloc++) {
+            // a-t-il deja été pris en compte
+            var isAlreadyUsed = alreadyUsed[bloc];
+            if(blockData[bloc][1] + BLOCKSIZE < heighestBlocY && !isAlreadyUsed) {
+                heighestBlocY = blockData[bloc][1] + BLOCKSIZE;
+                highestBlocId = bloc;
+            }
+        }
+        // verifie si le joueur est dessous
+        if(x + width / 2 >= blockData[highestBlocId][0] && x - width / 2 <= blockData[highestBlocId][0] + BLOCKSIZE && y + 20 >= blockData[highestBlocId][1] + BLOCKSIZE) {
+            result = y - blockData[highestBlocId][1] - BLOCKSIZE;
+        }
+        alreadyUsed[highestBlocId] = true;
+    }
+    return result;
+}
+
 function loop() {
     canvas.width = window.innerWidth - 1;
     canvas.height = window.innerHeight - 1;
@@ -119,19 +148,21 @@ function loop() {
     
     //#region PHISIQUES
     // vertical
-    if (groundDistance(playerX, playerY + playerHeight / 2, playerWidth) < playerYVelocity && playerYVelocity > 0) {
+    if (groundDistance(playerX, playerY + playerHeight / 2, playerWidth * 0.9) < playerYVelocity && playerYVelocity > 0) {
         playerYVelocity = 0;
-        playerY += groundDistance(playerX, playerY + playerHeight / 2, playerWidth);
+        playerY += groundDistance(playerX, playerY + playerHeight / 2, playerWidth * 0.9);
+    } else if (isABloc(playerX, playerY + playerHeight / 2 - BLOCKSIZE* 2) && playerYVelocity < 0) {
+        playerYVelocity = 0;
     } else {
         playerYVelocity += GRAVITY_FORCE;
     }
     playerY += playerYVelocity;
 
     // horizontal
-    if (isRightPressed && !isABloc(parseInt((playerX + playerWidth / 2) / BLOCKSIZE) * BLOCKSIZE, parseInt(playerY / BLOCKSIZE) * BLOCKSIZE)) {
+    if (isRightPressed && !isABloc(playerX + playerWidth / 2, playerY)) {
         playerX += moveSpeed;
     }
-    if  (isLeftPressed && !isABloc(parseInt((playerX - playerWidth / 2) / BLOCKSIZE) * BLOCKSIZE, parseInt(playerY / BLOCKSIZE) * BLOCKSIZE)) {
+    if  (isLeftPressed && !isABloc(playerX - playerWidth / 2, playerY)) {
         playerX -= moveSpeed;
     }
     //#endregion
@@ -178,9 +209,9 @@ function loop() {
 
     //#region POSER/CASSER
     //poser bloc
-    if (isClicked && !isABloc(blockX, blockY)) {
+    if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2)) {
         //permet au joueur de poser un bloc uniquement a cote d'un autre bloc
-        if (isABloc(blockX, blockY + BLOCKSIZE) || isABloc(blockX, blockY - BLOCKSIZE) || isABloc(blockX + BLOCKSIZE, blockY) || isABloc(blockX - BLOCKSIZE, blockY) ||
+        if (isABloc(blockX, blockY + BLOCKSIZE * 1.5) || isABloc(blockX, blockY - BLOCKSIZE * 1.5) || isABloc(blockX + BLOCKSIZE * 1.5, blockY) || isABloc(blockX - BLOCKSIZE * 1.5, blockY) ||
             mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
             var newBlock = [blockX, blockY, hotbarContent[usedHotbarID]];
             blockData.push(newBlock);
