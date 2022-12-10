@@ -86,37 +86,6 @@ function isABloc(x, y) {
     return result;
 }
 
-function groundDistance(x, y, width) {
-    // trouve le bon chunk
-    var chunk = parseInt(parseInt(x / BLOCKSIZE) / 16) - (x < 0 ? 1 : 0);
-    var chunkBlocks = getChunkBlocks(chunk);
-    // setup variables
-    var result = 1000;
-    var alreadyUsed = [];
-    for(var i = 0; i < chunkBlocks.length; i++) {
-        alreadyUsed.push(false);
-    }
-    //verifie chaque block du plus bas au plus haut
-    for(var i = 0; i < chunkBlocks.length; i++) {
-        var lowestBlocId = 0;
-        var lowestBlocY = 0;
-        for(var bloc = 0; bloc < chunkBlocks.length; bloc++) {
-            // a-t-il deja été pris en compte
-            var isAlreadyUsed = alreadyUsed[bloc];
-            if(chunkBlocks[bloc][1] > lowestBlocY && !isAlreadyUsed) {
-                lowestBlocY = chunkBlocks[bloc][1];
-                lowestBlocId = bloc;
-            }
-        }
-        // verifie si le joueur est dessus
-        if(x + width / 2 >= chunkBlocks[lowestBlocId][0] && x - width / 2 <= chunkBlocks[lowestBlocId][0] + BLOCKSIZE && y - 20 <= chunkBlocks[lowestBlocId][1]) {
-            result = chunkBlocks[lowestBlocId][1] - y;
-        }
-        alreadyUsed[lowestBlocId] = true;
-    }
-    return result;
-}
-
 function getYProcedural(x) {
     var result = 0;
     for (var i = 0; i < proceduralDetail; i++) {
@@ -146,13 +115,13 @@ function getChunkBlocks(x) {
             2
         ]);
         // terre
-        /*for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <= 1000; yPos += BLOCKSIZE) {
+        for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <= 1000; yPos += BLOCKSIZE) {
             result.push([
                 x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
                 yPos,
                 3
             ]);
-        }*/
+        }
     }
     return result;
 }
@@ -175,10 +144,9 @@ function loop() {
     
     //#region PHISIQUES
     // vertical
-    if (groundDistance(playerX, playerY + playerHeight / 2, playerWidth * 0.9) < playerYVelocity && playerYVelocity >= 0) {
+    if (isABloc(playerX, playerY + playerHeight / 2 + playerYVelocity) && playerYVelocity >= 0) {
         playerYVelocity = 0;
-        //playerY += groundDistance(playerX, playerY + playerHeight / 2, playerWidth * 0.9);
-    } else if (isABloc(playerX, playerY + playerHeight / 2 - BLOCKSIZE* 2) && playerYVelocity < 0) {
+    } else if (isABloc(playerX, playerY + playerHeight / 2 - BLOCKSIZE* 2) && playerYVelocity <= 0) {
         playerYVelocity = 0;
     } else {
         playerYVelocity += GRAVITY_FORCE;
@@ -320,7 +288,7 @@ document.addEventListener('keydown', function(e) {
         isLeftPressed = true;
     }
     // saut
-    if (e.which === 32 && groundDistance(playerX, playerY + playerHeight / 2, playerWidth) <= 5) {
+    if (e.which === 32 && isABloc(playerX, playerY + playerHeight / 2 + 5)) {
         playerYVelocity = -15;
     }
 });
