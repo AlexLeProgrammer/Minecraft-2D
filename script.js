@@ -60,6 +60,12 @@ var mouseScreenPosY = 0;
 var mouseWorldPosX = 0;
 var mouseWorldPosY = 0;
 
+// generation procedurale
+var proceduralDetail = 3;
+var proceduralSize = 100;
+
+noise.seed(Math.random());
+
 //permet de generer un nombre aleatoire
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
@@ -120,6 +126,14 @@ function groundDistance(x, y, width) {
         alreadyUsed[lowestBlocId] = true;
     }
     return result;
+}
+
+function getYProcedural(x) {
+    var result = 0;
+    for (var i = 0; i < proceduralDetail; i++) {
+        result += noise.perlin2(x / (proceduralSize / (i + 1)), i * 100) / (i + 1);
+    }
+    return result * 100;
 }
 
 function ceilDistance(x, y, width) {
@@ -220,6 +234,12 @@ function loop() {
     context.fillStyle = "yellow";
     for (var i = 0; i < canvas.width; i++) {
         context.fillRect(16 * i * BLOCKSIZE - cameraX, 0, 1, canvas.height);
+    }
+    
+    // dessine le bruit perlin
+    context.fillStyle = "red";
+    for (var i = 0; i < canvas.width; i++) {
+        context.fillRect(i - cameraX, getYProcedural(i) + 500 - cameraY, 1, 1);
     }
     
     // dessine le joueur
