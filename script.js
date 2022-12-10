@@ -34,12 +34,14 @@ var hotbarSelectorSprite = new Image();
 hotbarSelectorSprite.src = 'sprites/hotbarSelector.png';
 
 // textures des blocs
-var blockTextures = [new Image(), new Image()];
+var blockTextures = [new Image(), new Image(), new Image(), new Image()];
 blockTextures[0].src = 'sprites/woodPlank.png';
 blockTextures[1].src = 'sprites/obsidianBlock.jpg';
+blockTextures[2].src = 'sprites/stoneBlock.jpg';
+blockTextures[3].src = 'sprites/sandBlock.png';
 
 // hotbar
-var hotbarContent = [0, 1, 1, 1, 0, 0, 0, 1, 0];
+var hotbarContent = [0, 0, 1, 1, 2, 2, 3, 3, 0];
 
 
 //variables des blocs
@@ -129,6 +131,14 @@ function loop() {
                 }
             }    
         }
+
+        //faite tomber le bloc si c'est du sable
+        if (blockData[i][2] === 3 && blockData[i][1] < canvas.height - canvas.height / 6 && !isABloc(blockData[i][0], blockData[i][1] + BLOCKSIZE)) {
+            blockData[i][3] += GRAVITY_FORCE;
+            blockData[i][1] += blockData[i][3];
+        } else if (blockData[i][2] === 3) {
+            blockData[i][3] = 0;
+        }
     }
 
     //applique la gravite sur la velocite du joueur
@@ -169,7 +179,7 @@ function loop() {
         //permet au joueur de poser un bloc uniquement a cote d'un autre bloc
         if (isABloc(blockX, blockY + BLOCKSIZE) || isABloc(blockX, blockY - BLOCKSIZE) || isABloc(blockX + BLOCKSIZE, blockY) || isABloc(blockX - BLOCKSIZE, blockY) ||
             mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
-            var newBlock = [blockX, blockY, hotbarContent[usedHotbarID]];
+            var newBlock = [blockX, blockY, hotbarContent[usedHotbarID], 0]; //le 4e int est pour la velocite du bloc si c'est du sable
             blockData.push(newBlock);
         }
     }
