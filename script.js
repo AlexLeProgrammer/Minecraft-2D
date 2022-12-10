@@ -9,7 +9,7 @@ const GRAVITY_FORCE = 0.5; //le joueur saute de 4 block de haut avec un force de
 
 //variables
 var playerX = 0;
-var playerY = 550;
+var playerY = 0;
 
 //variables des inputs
 var isRightPressed = false;
@@ -34,13 +34,15 @@ var hotbarSelectorSprite = new Image();
 hotbarSelectorSprite.src = 'sprites/hotbarSelector.png';
 
 // textures des blocs
-var blockTextures = [new Image(), new Image(), new Image()];
+var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Image()];
 blockTextures[0].src = 'sprites/woodPlank.png';
 blockTextures[1].src = 'sprites/obsidianBlock.jpg';
-blockTextures[2].src = 'sprites/flintandsteel.png';
+blockTextures[2].src = 'sprites/grass.jpg';
+blockTextures[3].src = 'sprites/dirt.jpg';
+blockTextures[4].src = 'sprites/flintandsteel.png';
 
 // hotbar
-var hotbarContent = [0, 1, 1, 1, 0, 2, 0, 1, 0];
+var hotbarContent = [0, 1, 2, 3, 0, 3, 0, 2, 0];
 
 //variables des blocs
 var modifiedChunks = [];
@@ -62,7 +64,8 @@ var mouseWorldPosY = 0;
 
 // generation procedurale
 var proceduralDetail = 3;
-var proceduralSize = 100;
+var proceduralSize = 500;
+var proceduralHeight = 300;
 
 noise.seed(Math.random());
 
@@ -73,14 +76,7 @@ function getRandomInt(min, max) {
 
 function isABloc(x, y) {
     var chunk = parseInt(parseInt(x / BLOCKSIZE) / 16) - (x < 0 ? 1 : 0);
-    var chunkBlocks = [];
-    if (modifiedChunks.length > 0) {
-        for (var i = 0; i < modifiedChunks.length; i++) {
-            if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) == chunk) {
-                chunkBlocks = modifiedChunks[i];
-            }
-        }
-    }
+    var chunkBlocks = getChunkBlocks(chunk);
     var result = false;
     for (var i = 0; i < chunkBlocks.length; i++) {
         if (chunkBlocks[i][0] <= x && chunkBlocks[i][0] + BLOCKSIZE >= x && chunkBlocks[i][1] <= y && chunkBlocks[i][1] + BLOCKSIZE >= y) {
@@ -93,16 +89,9 @@ function isABloc(x, y) {
 function groundDistance(x, y, width) {
     // trouve le bon chunk
     var chunk = parseInt(parseInt(x / BLOCKSIZE) / 16) - (x < 0 ? 1 : 0);
-    var chunkBlocks = [];
-    if (modifiedChunks.length > 0) {
-        for (var i = 0; i < modifiedChunks.length; i++) {
-            if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) == chunk) {
-                chunkBlocks = modifiedChunks[i];
-            }
-        }
-    }
+    var chunkBlocks = getChunkBlocks(chunk);
     // setup variables
-    var result = 550 - y;
+    var result = 1000;
     var alreadyUsed = [];
     for(var i = 0; i < chunkBlocks.length; i++) {
         alreadyUsed.push(false);
@@ -133,43 +122,37 @@ function getYProcedural(x) {
     for (var i = 0; i < proceduralDetail; i++) {
         result += noise.perlin2(x / (proceduralSize / (i + 1)), i * 100) / (i + 1);
     }
-    return result * 100;
+    return result * proceduralHeight;
 }
 
-function ceilDistance(x, y, width) {
-    // trouve le bon chunk
-    var chunk = parseInt(parseInt(x / BLOCKSIZE) / 16) - (x < 0 ? 1 : 0);
-    var chunkBlocks = [];
-    if (modifiedChunks.length > 0) {
-        for (var i = 0; i < modifiedChunks.length; i++) {
-            if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) == chunk) {
-                chunkBlocks = modifiedChunks[i];
+playerY = parseInt(getYProcedural(0) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE;
+
+function getChunkBlocks(x) {
+    var result = [];
+    // ce chunk a-t-il des modifications
+    for (var i = 0; i < modifiedChunks.length; i++) {
+        if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) == x) {
+            for (var j = 0; j < modifiedChunks[i].length; j++) {
+                result.push(modifiedChunks[i][j]);
             }
         }
     }
-    // setup variables
-    var result = 1000;
-    var alreadyUsed = [];
-    for(var i = 0; i < chunkBlocks.length; i++) {
-        alreadyUsed.push(false);
-    }
-    //verifie chaque block du plus haut au plus bas
-    for(var i = 0; i < chunkBlocks.length; i++) {
-        var highestBlocId = 0;
-        var heighestBlocY = 0;
-        for(var bloc = 0; bloc < chunkBlocks.length; bloc++) {
-            // a-t-il deja été pris en compte
-            var isAlreadyUsed = alreadyUsed[bloc];
-            if(chunkBlocks[bloc][1] + BLOCKSIZE < heighestBlocY && !isAlreadyUsed) {
-                heighestBlocY = chunkBlocks[bloc][1] + BLOCKSIZE;
-                highestBlocId = bloc;
-            }
-        }
-        // verifie si le joueur est dessous
-        if(x + width / 2 >= chunkBlocks[highestBlocId][0] && x - width / 2 <= chunkBlocks[highestBlocId][0] + BLOCKSIZE && y + 20 >= chunkBlocks[highestBlocId][1] + BLOCKSIZE) {
-            result = y - chunkBlocks[highestBlocId][1] - BLOCKSIZE;
-        }
-        alreadyUsed[highestBlocId] = true;
+    // ajout de terrain
+    for (var xPos = 0; xPos < 16; xPos++) {
+        // herbe
+        result.push([
+            x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
+            parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE,
+            2
+        ]);
+        // terre
+        /*for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <= 1000; yPos += BLOCKSIZE) {
+            result.push([
+                x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
+                yPos,
+                3
+            ]);
+        }*/
     }
     return result;
 }
@@ -192,9 +175,9 @@ function loop() {
     
     //#region PHISIQUES
     // vertical
-    if (groundDistance(playerX, playerY + playerHeight / 2, playerWidth * 0.9) < playerYVelocity && playerYVelocity > 0) {
+    if (groundDistance(playerX, playerY + playerHeight / 2, playerWidth * 0.9) < playerYVelocity && playerYVelocity >= 0) {
         playerYVelocity = 0;
-        playerY += groundDistance(playerX, playerY + playerHeight / 2, playerWidth * 0.9);
+        //playerY += groundDistance(playerX, playerY + playerHeight / 2, playerWidth * 0.9);
     } else if (isABloc(playerX, playerY + playerHeight / 2 - BLOCKSIZE* 2) && playerYVelocity < 0) {
         playerYVelocity = 0;
     } else {
@@ -215,37 +198,25 @@ function loop() {
     // clear le canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    //dessine le sol
-    context.fillStyle = "#1CDF1F";
-    context.fillRect(0, 550 - cameraY, canvas.width, canvas.height);
-
     // dessine les blocs
-    for (var i = 0; i < modifiedChunks.length; i++) {
-        // dessine les blocs
-        if (Math.abs((parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0)) - 
-        (parseInt(parseInt(playerX / BLOCKSIZE) / 16) - (playerX < 0 ? 1 : 0))) <= renderDistance) {
-            for (var j = 0; j < modifiedChunks[i].length; j++) {
-                context.drawImage(blockTextures[modifiedChunks[i][j][2]], modifiedChunks[i][j][0] - cameraX, modifiedChunks[i][j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);
-            }
+    var playerChunk = parseInt(parseInt(playerX / BLOCKSIZE) / 16) - (playerX < 0 ? 1 : 0);
+    for (var i = playerChunk - renderDistance; i <= playerChunk + renderDistance ; i++) {
+        var blocks = getChunkBlocks(i);
+        for (var j = 0; j < blocks.length; j++) {
+            context.drawImage(blockTextures[blocks[j][2]], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);
         }
     }
 
-    // dessine les chunks
+    // dessine les frontieres chunks
     context.fillStyle = "yellow";
     for (var i = 0; i < canvas.width; i++) {
         context.fillRect(16 * i * BLOCKSIZE - cameraX, 0, 1, canvas.height);
     }
     
-    // dessine le bruit perlin
-    context.fillStyle = "red";
-    for (var i = 0; i < canvas.width; i++) {
-        context.fillRect(i - cameraX, getYProcedural(i) + 500 - cameraY, 1, 1);
-    }
-    
     // dessine le joueur
     context.drawImage(playerSprite, playerX - cameraX - playerWidth / 2, playerY - cameraY - playerHeight / 2, playerWidth, playerHeight);
         
-    // dessines le carré noir
+    // dessine le carré noir
     context.strokeSytle = "black";
     context.lineWidth = 3;
     context.strokeRect(blockX - cameraX, blockY - cameraY, 50, 50);
