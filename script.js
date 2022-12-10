@@ -22,6 +22,7 @@ var playerWidth = 42.5;
 var playerHeight = 85;
 var moveSpeed = 5;
 var playerYVelocity = 0;
+var renderDistance = 2;
 
 //variables des images
 var playerSprite = new Image();
@@ -42,7 +43,7 @@ blockTextures[2].src = 'sprites/flintandsteel.png';
 var hotbarContent = [0, 1, 1, 1, 0, 2, 0, 1, 0];
 
 //variables des blocs
-var blockData = [];
+var modifiedChunks = [];
 var blockX = 0;
 var blockY = 0;
 var usedHotbarID = 0;
@@ -65,9 +66,18 @@ function getRandomInt(min, max) {
 }
 
 function isABloc(x, y) {
+    var chunk = parseInt(parseInt(x / BLOCKSIZE) / 16) - (x < 0 ? 1 : 0);
+    var chunkBlocks = [];
+    if (modifiedChunks.length > 0) {
+        for (var i = 0; i < modifiedChunks.length; i++) {
+            if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) == chunk) {
+                chunkBlocks = modifiedChunks[i];
+            }
+        }
+    }
     var result = false;
-    for (var i = 0; i < blockData.length; i++) {
-        if (blockData[i][0] <= x && blockData[i][0] + BLOCKSIZE >= x && blockData[i][1] <= y && blockData[i][1] + BLOCKSIZE >= y) {
+    for (var i = 0; i < chunkBlocks.length; i++) {
+        if (chunkBlocks[i][0] <= x && chunkBlocks[i][0] + BLOCKSIZE >= x && chunkBlocks[i][1] <= y && chunkBlocks[i][1] + BLOCKSIZE >= y) {
             result = true;
         }
     }
@@ -75,27 +85,37 @@ function isABloc(x, y) {
 }
 
 function groundDistance(x, y, width) {
+    // trouve le bon chunk
+    var chunk = parseInt(parseInt(x / BLOCKSIZE) / 16) - (x < 0 ? 1 : 0);
+    var chunkBlocks = [];
+    if (modifiedChunks.length > 0) {
+        for (var i = 0; i < modifiedChunks.length; i++) {
+            if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) == chunk) {
+                chunkBlocks = modifiedChunks[i];
+            }
+        }
+    }
     // setup variables
     var result = 550 - y;
     var alreadyUsed = [];
-    for(var i = 0; i < blockData.length; i++) {
+    for(var i = 0; i < chunkBlocks.length; i++) {
         alreadyUsed.push(false);
     }
     //verifie chaque block du plus bas au plus haut
-    for(var i = 0; i < blockData.length; i++) {
+    for(var i = 0; i < chunkBlocks.length; i++) {
         var lowestBlocId = 0;
         var lowestBlocY = 0;
-        for(var bloc = 0; bloc < blockData.length; bloc++) {
+        for(var bloc = 0; bloc < chunkBlocks.length; bloc++) {
             // a-t-il deja été pris en compte
             var isAlreadyUsed = alreadyUsed[bloc];
-            if(blockData[bloc][1] > lowestBlocY && !isAlreadyUsed) {
-                lowestBlocY = blockData[bloc][1];
+            if(chunkBlocks[bloc][1] > lowestBlocY && !isAlreadyUsed) {
+                lowestBlocY = chunkBlocks[bloc][1];
                 lowestBlocId = bloc;
             }
         }
         // verifie si le joueur est dessus
-        if(x + width / 2 >= blockData[lowestBlocId][0] && x - width / 2 <= blockData[lowestBlocId][0] + BLOCKSIZE && y - 20 <= blockData[lowestBlocId][1]) {
-            result = blockData[lowestBlocId][1] - y;
+        if(x + width / 2 >= chunkBlocks[lowestBlocId][0] && x - width / 2 <= chunkBlocks[lowestBlocId][0] + BLOCKSIZE && y - 20 <= chunkBlocks[lowestBlocId][1]) {
+            result = chunkBlocks[lowestBlocId][1] - y;
         }
         alreadyUsed[lowestBlocId] = true;
     }
@@ -103,27 +123,37 @@ function groundDistance(x, y, width) {
 }
 
 function ceilDistance(x, y, width) {
+    // trouve le bon chunk
+    var chunk = parseInt(parseInt(x / BLOCKSIZE) / 16) - (x < 0 ? 1 : 0);
+    var chunkBlocks = [];
+    if (modifiedChunks.length > 0) {
+        for (var i = 0; i < modifiedChunks.length; i++) {
+            if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) == chunk) {
+                chunkBlocks = modifiedChunks[i];
+            }
+        }
+    }
     // setup variables
     var result = 1000;
     var alreadyUsed = [];
-    for(var i = 0; i < blockData.length; i++) {
+    for(var i = 0; i < chunkBlocks.length; i++) {
         alreadyUsed.push(false);
     }
     //verifie chaque block du plus haut au plus bas
-    for(var i = 0; i < blockData.length; i++) {
+    for(var i = 0; i < chunkBlocks.length; i++) {
         var highestBlocId = 0;
         var heighestBlocY = 0;
-        for(var bloc = 0; bloc < blockData.length; bloc++) {
+        for(var bloc = 0; bloc < chunkBlocks.length; bloc++) {
             // a-t-il deja été pris en compte
             var isAlreadyUsed = alreadyUsed[bloc];
-            if(blockData[bloc][1] + BLOCKSIZE < heighestBlocY && !isAlreadyUsed) {
-                heighestBlocY = blockData[bloc][1] + BLOCKSIZE;
+            if(chunkBlocks[bloc][1] + BLOCKSIZE < heighestBlocY && !isAlreadyUsed) {
+                heighestBlocY = chunkBlocks[bloc][1] + BLOCKSIZE;
                 highestBlocId = bloc;
             }
         }
         // verifie si le joueur est dessous
-        if(x + width / 2 >= blockData[highestBlocId][0] && x - width / 2 <= blockData[highestBlocId][0] + BLOCKSIZE && y + 20 >= blockData[highestBlocId][1] + BLOCKSIZE) {
-            result = y - blockData[highestBlocId][1] - BLOCKSIZE;
+        if(x + width / 2 >= chunkBlocks[highestBlocId][0] && x - width / 2 <= chunkBlocks[highestBlocId][0] + BLOCKSIZE && y + 20 >= chunkBlocks[highestBlocId][1] + BLOCKSIZE) {
+            result = y - chunkBlocks[highestBlocId][1] - BLOCKSIZE;
         }
         alreadyUsed[highestBlocId] = true;
     }
@@ -133,15 +163,15 @@ function ceilDistance(x, y, width) {
 function loop() {
     canvas.width = window.innerWidth - 1;
     canvas.height = window.innerHeight - 1;
-
+    
     // calcul la position in-game du curseur
     mouseWorldPosX = mouseScreenPosX - (mouseWorldPosX < 0 ? BLOCKSIZE: 0) + cameraX;
     mouseWorldPosY = mouseScreenPosY - (mouseWorldPosY < 0 ? BLOCKSIZE: 0) + cameraY;
-
+    
     // arrondi l'emplacement de la souris sur la grille
     var blockX = parseInt(mouseWorldPosX / BLOCKSIZE) * BLOCKSIZE;
     var blockY = parseInt(mouseWorldPosY / BLOCKSIZE) * BLOCKSIZE;
-
+    
     //deplace la camera
     cameraX += (playerX - canvas.width / 2 - cameraX) / 30;
     cameraY += (playerY - canvas.height / 2 - cameraY) / 30;
@@ -173,11 +203,23 @@ function loop() {
 
     //dessine le sol
     context.fillStyle = "#1CDF1F";
-    context.fillRect(0, canvas.height - cameraY - 40, canvas.width, canvas.height);
+    context.fillRect(0, 550 - cameraY, canvas.width, canvas.height);
 
     // dessine les blocs
-    for (var i = 0; i < blockData.length; i++) {
-        context.drawImage(blockTextures[blockData[i][2]], blockData[i][0] - cameraX, blockData[i][1] - cameraY, 50, 50);
+    for (var i = 0; i < modifiedChunks.length; i++) {
+        // dessine les blocs
+        if (Math.abs((parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0)) - 
+        (parseInt(parseInt(playerX / BLOCKSIZE) / 16) - (playerX < 0 ? 1 : 0))) <= renderDistance) {
+            for (var j = 0; j < modifiedChunks[i].length; j++) {
+                context.drawImage(blockTextures[modifiedChunks[i][j][2]], modifiedChunks[i][j][0] - cameraX, modifiedChunks[i][j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);
+            }
+        }
+    }
+
+    // dessine les chunks
+    context.fillStyle = "yellow";
+    for (var i = 0; i < canvas.width; i++) {
+        context.fillRect(16 * i * BLOCKSIZE - cameraX, 0, 1, canvas.height);
     }
     
     // dessine le joueur
@@ -208,22 +250,41 @@ function loop() {
     //#endregion
 
     //#region POSER/CASSER
+    // trouve le bon chunk
+    var chunk = parseInt(parseInt(blockX / BLOCKSIZE) / 16) - (blockX < 0 ? 1 : 0);
+    var chunkIndex = modifiedChunks.length;
+    for (var i = 0; i < modifiedChunks.length; i++) {
+        if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) == chunk) {
+            chunkIndex = i;
+        }
+    }
     //poser bloc
     if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2)) {
-        //permet au joueur de poser un bloc uniquement a cote d'un autre bloc
+        // poser
         if (isABloc(blockX, blockY + BLOCKSIZE * 1.5) || isABloc(blockX, blockY - BLOCKSIZE * 1.5) || isABloc(blockX + BLOCKSIZE * 1.5, blockY) || isABloc(blockX - BLOCKSIZE * 1.5, blockY) ||
-            mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
+        mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
+            if (chunkIndex == modifiedChunks.length) {
+                modifiedChunks.push([]);
+            }
             var newBlock = [blockX, blockY, hotbarContent[usedHotbarID]];
-            blockData.push(newBlock);
+            modifiedChunks[chunkIndex].push(newBlock);
         }
     }
 
     //casser bloc
-    for (var i = 0; i < blockData.length; i++) {
-        if (blockX == blockData[i][0] && blockY == blockData[i][1] && isRightClicked) {
-            blockData.splice(i, 1);
+    var unModified = false;
+    if (isRightClicked && modifiedChunks[chunkIndex] != null) {
+        for (var i = 0; i < modifiedChunks[chunkIndex].length; i++) {
+            if (blockX == modifiedChunks[chunkIndex][i][0] && blockY == modifiedChunks[chunkIndex][i][1]) {
+                if (modifiedChunks[chunkIndex].length > 1) {
+                    modifiedChunks[chunkIndex].splice(i, 1);
+                } else {
+                    unModified = true;
+                }
+            }
         }
     }
+    if (unModified) {modifiedChunks.splice(chunkIndex, 1);}
     //#endregion
 
     isClicked = false;
@@ -231,13 +292,11 @@ function loop() {
     requestAnimationFrame(loop);
 }
 
+//#region INPUTS
 //position de la souris
 canvas.addEventListener("mousemove", (e) => {
     mouseScreenPosX = e.clientX;
     mouseScreenPosY = e.clientY;
-    if (mouseScreenPosY >= canvas.height - cameraY * 1.5) {
-        mouseScreenPosY = canvas.height - cameraY * 1.5;
-    }
 });
 //molette
 canvas.addEventListener("wheel", (e) => {
@@ -284,6 +343,7 @@ document.addEventListener('keyup', function(e) {
         isLeftPressed = false;
     }
 });
+//#endregion
 
 // demarre le jeu
 requestAnimationFrame(loop);
