@@ -34,19 +34,23 @@ var hotbarSelectorSprite = new Image();
 hotbarSelectorSprite.src = 'sprites/hotbarSelector.png';
 
 // textures des blocs
-var blockTextures = [new Image(), new Image()];
+var blockTextures = [new Image(), new Image(), new Image(), new Image()];
 blockTextures[0].src = 'sprites/woodPlank.png';
 blockTextures[1].src = 'sprites/obsidianBlock.jpg';
+blockTextures[2].src = 'sprites/stoneBlock.jpg';
+blockTextures[3].src = 'sprites/sandBlock.png';
 
 // hotbar
-var hotbarContent = [0, 1, 1, 1, 0, 0, 0, 1, 0];
+var hotbarContent = [0, 0, 1, 1, 2, 2, 3, 3, 0];
 
 
 //variables des blocs
-var blockData = [[parseInt(10 / BLOCKSIZE) * BLOCKSIZE, parseInt(canvas.height / 2 / BLOCKSIZE) * BLOCKSIZE / 2, 0]];
+var blockData = [];
 var blockX = 0;
 var blockY = 0;
 var usedHotbarID = 0;
+
+var canPlaceAir = true;
 
 var gravity = true;
 
@@ -79,7 +83,7 @@ function loop() {
     mouseWorldPosX = mouseScreenPosX - (mouseWorldPosX < 0 ? BLOCKSIZE: 0) + cameraX;
     mouseWorldPosY = mouseScreenPosY - (mouseWorldPosY < 0 ? BLOCKSIZE: 0) + cameraY;
 
-    //arrondi l'emplacement de la souris sur la grille
+    // arrondi l'emplacement de la souris sur la grille
     var blockX = parseInt(mouseWorldPosX / BLOCKSIZE) * BLOCKSIZE;
     var blockY = parseInt(mouseWorldPosY / BLOCKSIZE) * BLOCKSIZE;
     
@@ -127,6 +131,14 @@ function loop() {
                 }
             }    
         }
+
+        //faite tomber le bloc si c'est du sable
+        if (blockData[i][2] === 3 && blockData[i][1] < canvas.height - canvas.height / 6 && !isABloc(blockData[i][0], blockData[i][1] + BLOCKSIZE)) {
+            blockData[i][3] += GRAVITY_FORCE;
+            blockData[i][1] += blockData[i][3];
+        } else if (blockData[i][2] === 3) {
+            blockData[i][3] = 0;
+        }
     }
 
     //applique la gravite sur la velocite du joueur
@@ -150,21 +162,24 @@ function loop() {
     var itemsMargin = 10;
     var hotbarStartX = canvas.width / 2 - hotbarCellSize * 9 / 2;
     for (var cellIndex = 0; cellIndex < 9; cellIndex ++) {
+        // case
         context.drawImage(hotbarCellSprite, hotbarStartX + cellIndex * hotbarCellSize,
         canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
 
+        // item
         context.drawImage(blockTextures[hotbarContent[cellIndex]], hotbarStartX + cellIndex * hotbarCellSize + itemsMargin,
         canvas.height - hotbarCellSize - hotbarHeight + itemsMargin, hotbarCellSize - 2 * itemsMargin, hotbarCellSize - 2 * itemsMargin);
     }
+    // selecteur
     context.drawImage(hotbarSelectorSprite, hotbarStartX + usedHotbarID * hotbarCellSize,
     canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
 
     //poser bloc
     if (isClicked && !isABloc(blockX, blockY)) {
         //permet au joueur de poser un bloc uniquement a cote d'un autre bloc
-        if (isABloc(blockX, blockY + 50) || isABloc(blockX, blockY - 50) || isABloc(blockX + 50, blockY) || isABloc(blockX - 50, blockY) ||
-            mouseScreenPosY >= canvas.height - cameraY * 1.5) {
-            var newBlock = [blockX, blockY, hotbarContent[usedHotbarID]];
+        if (isABloc(blockX, blockY + BLOCKSIZE) || isABloc(blockX, blockY - BLOCKSIZE) || isABloc(blockX + BLOCKSIZE, blockY) || isABloc(blockX - BLOCKSIZE, blockY) ||
+            mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
+            var newBlock = [blockX, blockY, hotbarContent[usedHotbarID], 0]; //le 4e int est pour la velocite du bloc si c'est du sable
             blockData.push(newBlock);
         }
     }
@@ -193,8 +208,6 @@ function loop() {
 
     isClicked = false;
     isRightClicked = false;
-    isShiftPressed = false;
-    isOnBlock = false;
     requestAnimationFrame(loop);
 }
 
