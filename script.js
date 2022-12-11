@@ -135,7 +135,7 @@ function loop() {
         //faite tomber le bloc si c'est du sable
         if (blockData[i][2] === 3 && blockData[i][1] < canvas.height - canvas.height / 6 && !isABloc(blockData[i][0], blockData[i][1] + BLOCKSIZE)) {
             blockData[i][3] += GRAVITY_FORCE;
-            blockData[i][1] += blockData[i][3];
+            blockData[i][1] += blockData[i][3] - blockData[i][3] % 10;
         } else if (blockData[i][2] === 3) {
             blockData[i][3] = 0;
         }
