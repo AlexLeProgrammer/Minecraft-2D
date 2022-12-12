@@ -99,28 +99,32 @@ playerY = parseInt(getYProcedural(0) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE;
 function getChunkBlocks(x) {
     var result = [];
     // ce chunk a-t-il des modifications
+    var isModified = false;
     for (var i = 0; i < modifiedChunks.length; i++) {
         if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) == x) {
+            isModified = true;
             for (var j = 0; j < modifiedChunks[i].length; j++) {
                 result.push(modifiedChunks[i][j]);
             }
         }
     }
-    // ajout de terrain
-    for (var xPos = 0; xPos < 16; xPos++) {
-        // herbe
-        result.push([
-            x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
-            parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE,
-            2
-        ]);
-        // terre
-        for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <= 1000; yPos += BLOCKSIZE) {
+    // ajout de terrain si pas de modifs
+    if (!isModified) {
+        for (var xPos = 0; xPos < 16; xPos++) {
+            // herbe
             result.push([
                 x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
-                yPos,
-                3
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE,
+                2
             ]);
+            // terre
+            for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <= 1000; yPos += BLOCKSIZE) {
+                result.push([
+                    x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
+                    yPos,
+                    3
+                ]);
+            }
         }
     }
     return result;
@@ -219,6 +223,17 @@ function loop() {
     }
     //poser bloc
     if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2)) {
+        // si le chunk n'etait pas modifié creer le terrain
+        if (modifiedChunks[chunkIndex] == null) {
+            var terrain = [];
+            for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
+                terrain.push(getChunkBlocks(chunkIndex)[i]);
+            }
+            modifiedChunks.push([]);
+            for (var i = 0; i < terrain.length; i++) {
+                modifiedChunks[modifiedChunks.length - 1].push(terrain[i]);
+            }
+        }
         // poser
         if (isABloc(blockX, blockY + BLOCKSIZE * 1.5) || isABloc(blockX, blockY - BLOCKSIZE * 1.5) || isABloc(blockX + BLOCKSIZE * 1.5, blockY) || isABloc(blockX - BLOCKSIZE * 1.5, blockY) ||
         mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
@@ -232,7 +247,18 @@ function loop() {
 
     //casser bloc
     var unModified = false;
-    if (isRightClicked && modifiedChunks[chunkIndex] != null) {
+    if (isRightClicked) {
+        // si le chunk n'etait pas modifié creer le terrain
+        if (modifiedChunks[chunkIndex] == null) {
+            var terrain = [];
+            for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
+                terrain.push(getChunkBlocks(chunkIndex)[i]);
+            }
+            modifiedChunks.push([]);
+            for (var i = 0; i < terrain.length; i++) {
+                modifiedChunks[modifiedChunks.length - 1].push(terrain[i]);
+            }
+        }
         for (var i = 0; i < modifiedChunks[chunkIndex].length; i++) {
             if (blockX == modifiedChunks[chunkIndex][i][0] && blockY == modifiedChunks[chunkIndex][i][1]) {
                 if (modifiedChunks[chunkIndex].length > 1) {
