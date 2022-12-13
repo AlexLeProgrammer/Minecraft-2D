@@ -8,8 +8,18 @@ const BLOCKSIZE = 50;
 const GRAVITY_FORCE = 0.5; //le joueur saute de 4 block de haut avec un force de -15 et une gravite de 0.5
 
 //variables
+//mouvement du joueur
+var moveSpeed = 5;
+var playerYVelocity = 0;
 var playerX = -300;
 var playerY = 100;
+
+//zombie
+var zombieX = -300;
+var zombieY = 100;
+var zombieYVelocity = 0;
+var gravityZombie = true;
+var isZombieBlockedOnSide = false;
 
 //variables des inputs
 var isRightPressed = false;
@@ -20,9 +30,6 @@ var isSpacePressed = false;
 var isClicked = false;
 var isRightClicked = false;
 
-//mouvement du joueur
-var moveSpeed = 5;
-var playerYVelocity = 0;
 
 //variables des images
 var playerSprite = new Image();
@@ -104,6 +111,12 @@ function loop() {
     } else {
         gravity = false;
     }
+    //desactive la gravite si le zombie est sur le sol
+    if (zombieY < 550) {
+        gravityZombie = true;
+    } else {
+        gravityZombie = false;
+    }
 
     //gere les blocs
     for (var i = 0; i < blockData.length; i++) {
@@ -113,6 +126,10 @@ function loop() {
         //empeche le joueur de tomber lorsqu'il est sur un bloc
         if (playerY >= blockData[i][1] - 130 && playerY <= blockData[i][1] - 90 && playerX >= blockData[i][0] - 60 && playerX <= blockData[i][0] + 50 && playerYVelocity >= 0) {
             gravity = false;
+        }
+        //empeche le zombie de tomber lorsqu'il est sur un bloc
+        if (zombieY >= blockData[i][1] - 130 && zombieY <= blockData[i][1] - 90 && zombieX >= blockData[i][0] - 100 && zombieX <= blockData[i][0] + 100 && zombieYVelocity >= 0) {
+            gravityZombie = false;
         }
 
         //empeche le joueur de traverser un bloc par le bas
@@ -127,11 +144,24 @@ function loop() {
                     playerX -= moveSpeed;
                 }
                 if ((playerX > blockData[i][0] + 25)) {
-                     playerX += moveSpeed; 
+                    playerX += moveSpeed; 
                 }
             }    
         }
-
+        //detecte si il y a un bloc à coté du zombie
+        if (zombieX < playerX || zombieX > playerX) {
+            if (zombieY >= blockData[i][1] - 100 && zombieY <= blockData[i][1] + 100 && zombieX >= blockData[i][0] - 100 && zombieX <= blockData[i][0] + 100) {
+                if ((zombieX + 100 < blockData[i][0] + 25)) {
+                    zombieX -= 2;
+                    isZombieBlockedOnSide = true;
+                }
+                if ((zombieX > blockData[i][0] + 25)) {
+                    zombieX += 2; 
+                    isZombieBlockedOnSide = true;
+                }
+            }    
+        }
+        
         //faite tomber le bloc si c'est du sable
         if (blockData[i][2] === 3 && blockData[i][1] < canvas.height - canvas.height / 6 && !isABloc(blockData[i][0], blockData[i][1] + BLOCKSIZE)) {
             blockData[i][3] += GRAVITY_FORCE;
@@ -140,7 +170,7 @@ function loop() {
             blockData[i][3] = 0;
         }
     }
-
+    
     //applique la gravite sur la velocite du joueur
     if (gravity === true) {
         playerYVelocity += GRAVITY_FORCE;
@@ -148,14 +178,24 @@ function loop() {
         playerYVelocity = 0;
     }
     
+    //applique la gravite sur le zombie
+    if (gravityZombie === true) {
+        zombieYVelocity += GRAVITY_FORCE;
+    } else {
+        zombieYVelocity = 0;
+    }
+
     //creer le joueur
     context.drawImage(playerSprite, playerX - cameraX, playerY - cameraY);
-        
+    
+    context.fillStyle = "blue";
+    context.fillRect(zombieX - cameraX, zombieY - cameraY, 100, 100);
+    
     //affiche l'emplacement ou le joueur va placer un bloc
     context.strokeSytle = "black";
     context.lineWidth = 3;
     context.strokeRect(blockX - cameraX, blockY - cameraY, 50, 50);
-
+    
     // dessine la hotbar
     var hotbarCellSize = 50;
     var hotbarHeight = 20;
@@ -164,27 +204,26 @@ function loop() {
     for (var cellIndex = 0; cellIndex < 9; cellIndex ++) {
         // case
         context.drawImage(hotbarCellSprite, hotbarStartX + cellIndex * hotbarCellSize,
-        canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
-
-        // item
-        context.drawImage(blockTextures[hotbarContent[cellIndex]], hotbarStartX + cellIndex * hotbarCellSize + itemsMargin,
-        canvas.height - hotbarCellSize - hotbarHeight + itemsMargin, hotbarCellSize - 2 * itemsMargin, hotbarCellSize - 2 * itemsMargin);
-    }
-    // selecteur
-    context.drawImage(hotbarSelectorSprite, hotbarStartX + usedHotbarID * hotbarCellSize,
-    canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
-
-    //poser bloc
-    if (isClicked && !isABloc(blockX, blockY)) {
+            canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
+            
+            // item
+            context.drawImage(blockTextures[hotbarContent[cellIndex]], hotbarStartX + cellIndex * hotbarCellSize + itemsMargin,
+                canvas.height - hotbarCellSize - hotbarHeight + itemsMargin, hotbarCellSize - 2 * itemsMargin, hotbarCellSize - 2 * itemsMargin);
+            }
+            // selecteur
+            context.drawImage(hotbarSelectorSprite, hotbarStartX + usedHotbarID * hotbarCellSize,
+                canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
+                
+                //poser bloc
+                if (isClicked && !isABloc(blockX, blockY)) {
         //permet au joueur de poser un bloc uniquement a cote d'un autre bloc
         if (isABloc(blockX, blockY + BLOCKSIZE) || isABloc(blockX, blockY - BLOCKSIZE) || isABloc(blockX + BLOCKSIZE, blockY) || isABloc(blockX - BLOCKSIZE, blockY) ||
-            mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
+        mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
             var newBlock = [blockX, blockY, hotbarContent[usedHotbarID], 0]; //le 4e int est pour la velocite du bloc si c'est du sable
             blockData.push(newBlock);
         }
     }
-
-
+    
     //supprimer bloc
     for (var i = 0; i < blockData.length; i++) {
         if (blockX == blockData[i][0] && blockY == blockData[i][1] && isRightClicked) {
@@ -202,12 +241,27 @@ function loop() {
     if ((playerY > 550 || gravity === false) && isSpacePressed) {
         playerYVelocity = -15;
     }
+    
+    //deplace le zombie
+    if (zombieX > playerX) {
+        zombieX -= 2;
+    }
+    if (zombieX < playerX) {
+        zombieX += 2;
+    }
+    if ((zombieY > 550 || gravityZombie === false) && zombieY > playerY + 100 && ((zombieX - playerX < 300 && zombieX - playerX > -1) || (playerX - zombieX < 300 && playerX - zombieX > -1))
+    || isZombieBlockedOnSide) {
+        zombieYVelocity = -15;
+    }
+
+    zombieY += zombieYVelocity;
 
     //fait tomber ou sauter le joueur
     playerY += playerYVelocity;
 
     isClicked = false;
     isRightClicked = false;
+    isZombieBlockedOnSide = false;
     requestAnimationFrame(loop);
 }
 
