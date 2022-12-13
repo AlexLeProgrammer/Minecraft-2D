@@ -34,12 +34,13 @@ var hotbarSelectorSprite = new Image();
 hotbarSelectorSprite.src = 'sprites/hotbarSelector.png';
 
 // textures des blocs
-var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Image()];
+var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Image(), new Image()];
 blockTextures[0].src = 'sprites/woodPlank.png';
 blockTextures[1].src = 'sprites/obsidianBlock.jpg';
 blockTextures[2].src = 'sprites/grass.jpg';
-blockTextures[3].src = 'sprites/dirt.jpg';
-blockTextures[4].src = 'sprites/flintandsteel.png';
+blockTextures[3].src = 'sprites/sandBlock.png';
+blockTextures[4].src = 'sprites/dirt.jpg';
+blockTextures[5].src = 'sprites/flintandsteel.png';
 
 // hotbar
 var hotbarContent = [0, 1, 2, 3, 0, 3, 0, 2, 0];
@@ -176,6 +177,14 @@ function loop() {
         var blocks = getChunkBlocks(i);
         for (var j = 0; j < blocks.length; j++) {
             context.drawImage(blockTextures[blocks[j][2]], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);
+        }
+
+        //faite tomber le bloc si c'est du sable
+        if (blockData[i][2] === 3 && blockData[i][1] < canvas.height - canvas.height / 6 && !isABloc(blockData[i][0], blockData[i][1] + BLOCKSIZE)) {
+            blockData[i][3] += GRAVITY_FORCE;
+            blockData[i][1] += blockData[i][3] - blockData[i][3] % 10;
+        } else if (blockData[i][2] === 3) {
+            blockData[i][3] = 0;
         }
     }
 
