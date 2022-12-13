@@ -8,8 +8,19 @@ const BLOCKSIZE = 50;
 const GRAVITY_FORCE = 0.5; //le joueur saute de 4 block de haut avec un force de -15 et une gravite de 0.5
 
 //variables
-var playerX = 0;
-var playerY = 0;
+//mouvement du joueur
+var moveSpeed = 5;
+var playerYVelocity = 0;
+var playerX = -300;
+var playerY = 100;
+
+
+//zombie
+var zombieX = -300;
+var zombieY = 100;
+var zombieYVelocity = 0;
+var gravityZombie = true;
+var isZombieBlockedOnSide = false;
 
 //variables des inputs
 var isRightPressed = false;
@@ -20,8 +31,6 @@ var isRightClicked = false;
 //mouvement du joueur
 var playerWidth = 42.5;
 var playerHeight = 85;
-var moveSpeed = 5;
-var playerYVelocity = 0;
 var renderDistance = 2;
 
 //variables des images
@@ -158,6 +167,14 @@ function loop() {
     }
     playerY += playerYVelocity;
 
+    //desactive la gravite si le zombie est sur le sol
+    if (zombieY < 550) {
+        gravityZombie = true;
+    } else {
+        gravityZombie = false;
+    }
+
+
     // horizontal
     if (isRightPressed && !isABloc(playerX + playerWidth / 2, playerY)) {
         playerX += moveSpeed;
@@ -177,8 +194,26 @@ function loop() {
         var blocks = getChunkBlocks(i);
         for (var j = 0; j < blocks.length; j++) {
             context.drawImage(blockTextures[blocks[j][2]], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);
-        }
 
+        //empeche le zombie de tomber lorsqu'il est sur un bloc
+        if (zombieY >= blockData[i][1] - 130 && zombieY <= blockData[i][1] - 90 && zombieX >= blockData[i][0] - 100 && zombieX <= blockData[i][0] + 100 && zombieYVelocity >= 0) {
+            gravityZombie = false;
+        }
+        
+        //detecte si il y a un bloc à coté du zombie
+        if (zombieX < playerX || zombieX > playerX) {
+            if (zombieY >= blockData[i][1] - 100 && zombieY <= blockData[i][1] + 100 && zombieX >= blockData[i][0] - 100 && zombieX <= blockData[i][0] + 100) {
+                if ((zombieX + 100 < blockData[i][0] + 25)) {
+                    zombieX -= 2;
+                    isZombieBlockedOnSide = true;
+                }
+                if ((zombieX > blockData[i][0] + 25)) {
+                    zombieX += 2; 
+                    isZombieBlockedOnSide = true;
+                }
+            }    
+        }
+        
         //faite tomber le bloc si c'est du sable
         if (blockData[i][2] === 3 && blockData[i][1] < canvas.height - canvas.height / 6 && !isABloc(blockData[i][0], blockData[i][1] + BLOCKSIZE)) {
             blockData[i][3] += GRAVITY_FORCE;
@@ -196,12 +231,27 @@ function loop() {
     
     // dessine le joueur
     context.drawImage(playerSprite, playerX - cameraX - playerWidth / 2, playerY - cameraY - playerHeight / 2, playerWidth, playerHeight);
-        
+    
+    //applique la gravite sur le zombie
+    if (gravityZombie === true) {
+      zombieYVelocity += GRAVITY_FORCE;
+    } else {
+      zombieYVelocity = 0;
+    }
+
+    //creer le joueur
+    context.drawImage(playerSprite, playerX - cameraX, playerY - cameraY);
+
+    //dessine le zombie
+    context.fillStyle = "blue";
+    context.fillRect(zombieX - cameraX, zombieY - cameraY, 100, 100);   
+    
     // dessine le carré noir
+    //affiche l'emplacement ou le joueur va placer un bloc
     context.strokeSytle = "black";
     context.lineWidth = 3;
     context.strokeRect(blockX - cameraX, blockY - cameraY, 50, 50);
-
+    
     // dessine la hotbar
     var hotbarCellSize = 50;
     var hotbarHeight = 20;
@@ -281,8 +331,22 @@ function loop() {
     if (unModified) {modifiedChunks.splice(chunkIndex, 1);}
     //#endregion
 
+    //deplace le zombie
+    if (zombieX > playerX) {
+        zombieX -= 2;
+    }
+    if (zombieX < playerX) {
+        zombieX += 2;
+    }
+    if ((zombieY > 550 || gravityZombie === false) && zombieY > playerY + 100 && ((zombieX - playerX < 300 && zombieX - playerX > -1) || (playerX - zombieX < 300 && playerX - zombieX > -1))
+    || isZombieBlockedOnSide) {
+        zombieYVelocity = -15;
+    }
+
+    zombieY += zombieYVelocity;
     isClicked = false;
     isRightClicked = false;
+    isZombieBlockedOnSide = false;
     requestAnimationFrame(loop);
 }
 
