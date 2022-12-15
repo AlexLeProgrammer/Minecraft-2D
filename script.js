@@ -49,7 +49,7 @@ blockTextures[5].src = 'sprites/stone.png';
 blockTextures[6].src = 'sprites/flintandsteel.png';
 
 // hotbar
-var hotbarContent = [0, 1, 2, 3, 4, 5, 6, 0, 1];
+var hotbarContent = [0, 1, 2, 3, 4, 5, 1, 0, 6];
 
 //variables des blocs
 var modifiedChunks = [];
@@ -84,12 +84,26 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
+//detecte si il y a un bloc a des coordonnees precises
 function isABloc(x, y) {
     var chunk = parseInt(parseInt(x / BLOCKSIZE) / 16) - (x < 0 ? 1 : 0);
     var chunkBlocks = getChunkBlocks(chunk);
     var result = false;
     for (var i = 0; i < chunkBlocks.length; i++) {
         if (chunkBlocks[i][0] <= x && chunkBlocks[i][0] + BLOCKSIZE >= x && chunkBlocks[i][1] <= y && chunkBlocks[i][1] + BLOCKSIZE >= y) {
+            result = true;
+        }
+    }
+    return result;
+}
+//detecte si il y a un bloc- d'obsidienne a des coordonnees precises
+function isAnObsidianBloc(x, y) {
+    var chunk = parseInt(parseInt(x / BLOCKSIZE) / 16) - (x < 0 ? 1 : 0);
+    var chunkBlocks = getChunkBlocks(chunk);
+    var result = false;
+    for (var i = 0; i < chunkBlocks.length; i++) {
+        if (chunkBlocks[i][0] <= x && chunkBlocks[i][0] + BLOCKSIZE >= x && chunkBlocks[i][1] <= y && chunkBlocks[i][1] + BLOCKSIZE >= y &&
+            chunkBlocks[i][2] === 3) {
             result = true;
         }
     }
@@ -211,6 +225,30 @@ function loop() {
     }
     zombieY += zombieYVelocity;
     
+    //portail
+    if(isClicked && usedHotbarID === 8) {
+        if (isAnObsidianBloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2)) { //bloc 1
+            if (isAnObsidianBloc(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE)) { //bloc  2
+                if (isAnObsidianBloc(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 2)) { //bloc  3
+                    if (isAnObsidianBloc(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 3)) { //bloc  4
+                        if (isAnObsidianBloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 4)) { //bloc  5
+                            if (isAnObsidianBloc(blockX + BLOCKSIZE / 2 + BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 4)) { //bloc  6
+                                if (isAnObsidianBloc(blockX + BLOCKSIZE / 2 + BLOCKSIZE * 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 3)) { //bloc  7
+                                    if (isAnObsidianBloc(blockX + BLOCKSIZE / 2 + BLOCKSIZE * 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 2)) { //bloc  8
+                                        if (isAnObsidianBloc(blockX + BLOCKSIZE / 2 + BLOCKSIZE * 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE)) { //bloc  9
+                                            if (isAnObsidianBloc(blockX + BLOCKSIZE / 2 + BLOCKSIZE, blockY + BLOCKSIZE / 2)) { //bloc  10
+                                                playerY = -1000;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }   
+                    }
+                }
+            }
+        }
+    }
     //#endregion
     //#region AFFICHAGE
     // clear le canvas
@@ -266,7 +304,7 @@ function loop() {
         }
     }
     //poser bloc
-    if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2)) {
+    if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && usedHotbarID != 8) {
         // si le chunk n'etait pas modifié creer le terrain
         if (modifiedChunks[chunkIndex] == null) {
             var terrain = [];
