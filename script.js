@@ -5,11 +5,20 @@ var context = canvas.getContext('2d');
 
 // constantes
 const BLOCKSIZE = 50;
-const GRAVITY_FORCE = 0.5; //le joueur saute de 4 block de haut avec un force de -15 et une gravite de 0.5
+const GRAVITY_FORCE = 0.5;
+const JUMP_FORCE = 9.5;
+const ZOMBIE_JUMP_FORCE = 10;
+const MOVE_SPEED = 3;
+const ZOMBIE_MOVE_SPEED = 2;
+const PLAYER_WIDTH = 42.5;
+const PLAYER_HEIGHT = 85;
+const ZOMBIE_WIDTH = 50;
+const ZOMBIE_HEIGHT = 100;
+const ZOMBIE_FOLLOW_DISTANCE = 600;
 
 //variables
 var playerX = 0;
-var playerY = 550;
+var playerY = 0;
 
 //variables des inputs
 var isRightPressed = false;
@@ -18,114 +27,115 @@ var isClicked = false;
 var isRightClicked = false;
 
 //mouvement du joueur
-var playerWidth = 42.5;
-var playerHeight = 85;
-var moveSpeed = 5;
 var playerYVelocity = 0;
+var renderDistance = 2;
 
 //variables des images
 var playerSprite = new Image();
 playerSprite.src = 'sprites/player.png';
-
 var hotbarCellSprite = new Image();
 hotbarCellSprite.src = 'sprites/hotbarFrame.png';
 var hotbarSelectorSprite = new Image();
 hotbarSelectorSprite.src = 'sprites/hotbarSelector.png';
 
 // textures des blocs
-var blockTextures = [new Image(), new Image(), new Image()];
-blockTextures[0].src = 'sprites/woodPlank.png';
-blockTextures[1].src = 'sprites/obsidianBlock.jpg';
-blockTextures[2].src = 'sprites/flintandsteel.png';
+var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image()];
+blockTextures[0].src = 'sprites/oak_plank.png';
+blockTextures[1].src = 'sprites/grass.png';
+blockTextures[2].src = 'sprites/dirt.png';
+blockTextures[3].src = 'sprites/obsidian.png';
+blockTextures[4].src = 'sprites/sand.png';
+blockTextures[5].src = 'sprites/stone.png';
+blockTextures[6].src = 'sprites/flintandsteel.png';
 
 // hotbar
-var hotbarContent = [0, 1, 1, 1, 0, 2, 0, 1, 0];
+var hotbarContent = [0, 1, 2, 3, 4, 5, 6, 0, 1];
 
 //variables des blocs
-var blockData = [];
+var modifiedChunks = [];
 var blockX = 0;
 var blockY = 0;
 var usedHotbarID = 0;
-
 var canPlaceAir = true;
-
 var gravity = true;
-
 var cameraX = 0;
 var cameraY = 0;
-
 var mouseScreenPosX = 0;
 var mouseScreenPosY = 0;
 var mouseWorldPosX = 0;
 var mouseWorldPosY = 0;
 
+// generation procedurale
+var proceduralDetail = 3;
+var proceduralSize = 500;
+var proceduralHeight = 300;
+var superflat = false;
+
+//zombie
+var zombieX = 500;
+var zombieY = -200;
+var zombieYVelocity = 0;
+var gravityZombie = true;
+var isZombieBlockedOnSide = false;
+
+noise.seed(Math.random());
 //permet de generer un nombre aleatoire
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
 function isABloc(x, y) {
+    var chunk = parseInt(parseInt(x / BLOCKSIZE) / 16) - (x < 0 ? 1 : 0);
+    var chunkBlocks = getChunkBlocks(chunk);
     var result = false;
-    for (var i = 0; i < blockData.length; i++) {
-        if (blockData[i][0] <= x && blockData[i][0] + BLOCKSIZE >= x && blockData[i][1] <= y && blockData[i][1] + BLOCKSIZE >= y) {
+    for (var i = 0; i < chunkBlocks.length; i++) {
+        if (chunkBlocks[i][0] <= x && chunkBlocks[i][0] + BLOCKSIZE >= x && chunkBlocks[i][1] <= y && chunkBlocks[i][1] + BLOCKSIZE >= y) {
             result = true;
         }
     }
     return result;
 }
 
-function groundDistance(x, y, width) {
-    // setup variables
-    var result = 550 - y;
-    var alreadyUsed = [];
-    for(var i = 0; i < blockData.length; i++) {
-        alreadyUsed.push(false);
+function getYProcedural(x) {
+    var result = 0;
+    for (var i = 0; i < proceduralDetail; i++) {
+        result += noise.perlin2(x / (proceduralSize / (i + 1)), i * 100) / (i + 1);
     }
-    //verifie chaque block du plus bas au plus haut
-    for(var i = 0; i < blockData.length; i++) {
-        var lowestBlocId = 0;
-        var lowestBlocY = 0;
-        for(var bloc = 0; bloc < blockData.length; bloc++) {
-            // a-t-il deja été pris en compte
-            var isAlreadyUsed = alreadyUsed[bloc];
-            if(blockData[bloc][1] > lowestBlocY && !isAlreadyUsed) {
-                lowestBlocY = blockData[bloc][1];
-                lowestBlocId = bloc;
-            }
-        }
-        // verifie si le joueur est dessus
-        if(x + width / 2 >= blockData[lowestBlocId][0] && x - width / 2 <= blockData[lowestBlocId][0] + BLOCKSIZE && y - 20 <= blockData[lowestBlocId][1]) {
-            result = blockData[lowestBlocId][1] - y;
-        }
-        alreadyUsed[lowestBlocId] = true;
-    }
-    return result;
+    return superflat ? 0 : (result * proceduralHeight);
 }
 
-function ceilDistance(x, y, width) {
-    // setup variables
-    var result = 1000;
-    var alreadyUsed = [];
-    for(var i = 0; i < blockData.length; i++) {
-        alreadyUsed.push(false);
-    }
-    //verifie chaque block du plus haut au plus bas
-    for(var i = 0; i < blockData.length; i++) {
-        var highestBlocId = 0;
-        var heighestBlocY = 0;
-        for(var bloc = 0; bloc < blockData.length; bloc++) {
-            // a-t-il deja été pris en compte
-            var isAlreadyUsed = alreadyUsed[bloc];
-            if(blockData[bloc][1] + BLOCKSIZE < heighestBlocY && !isAlreadyUsed) {
-                heighestBlocY = blockData[bloc][1] + BLOCKSIZE;
-                highestBlocId = bloc;
+playerY = parseInt(getYProcedural(0) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE;
+function getChunkBlocks(x) {
+    var result = [];
+    // ce chunk a-t-il des modifications
+    var isModified = false;
+    for (var i = 0; i < modifiedChunks.length; i++) {
+        if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) == x) {
+            isModified = true;
+            for (var j = 0; j < modifiedChunks[i].length; j++) {
+                result.push(modifiedChunks[i][j]);
             }
         }
-        // verifie si le joueur est dessous
-        if(x + width / 2 >= blockData[highestBlocId][0] && x - width / 2 <= blockData[highestBlocId][0] + BLOCKSIZE && y + 20 >= blockData[highestBlocId][1] + BLOCKSIZE) {
-            result = y - blockData[highestBlocId][1] - BLOCKSIZE;
+    }
+
+    // ajout de terrain si pas de modifs
+    if (!isModified) {
+        for (var xPos = 0; xPos < 16; xPos++) {
+            // herbe
+            result.push([
+                x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE,
+                1
+            ]);
+            // terre
+            for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <= 1000; yPos += BLOCKSIZE) {
+                result.push([
+                    x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
+                    yPos,
+                    2
+                ]);
+            }
         }
-        alreadyUsed[highestBlocId] = true;
     }
     return result;
 }
@@ -137,7 +147,7 @@ function loop() {
     // calcul la position in-game du curseur
     mouseWorldPosX = mouseScreenPosX - (mouseWorldPosX < 0 ? BLOCKSIZE: 0) + cameraX;
     mouseWorldPosY = mouseScreenPosY - (mouseWorldPosY < 0 ? BLOCKSIZE: 0) + cameraY;
-
+    
     // arrondi l'emplacement de la souris sur la grille
     var blockX = parseInt(mouseWorldPosX / BLOCKSIZE) * BLOCKSIZE;
     var blockY = parseInt(mouseWorldPosY / BLOCKSIZE) * BLOCKSIZE;
@@ -148,46 +158,86 @@ function loop() {
     
     //#region PHISIQUES
     // vertical
-    if (groundDistance(playerX, playerY + playerHeight / 2, playerWidth * 0.9) < playerYVelocity && playerYVelocity > 0) {
+    // sol
+    if (isABloc(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity) && playerYVelocity >= 0) {
         playerYVelocity = 0;
-        playerY += groundDistance(playerX, playerY + playerHeight / 2, playerWidth * 0.9);
-    } else if (isABloc(playerX, playerY + playerHeight / 2 - BLOCKSIZE* 2) && playerYVelocity < 0) {
-        playerYVelocity = 0;
-    } else {
+    }else {
         playerYVelocity += GRAVITY_FORCE;
     }
+    
+    // toit
+    if (isABloc(playerX, playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2) && playerYVelocity <= 0) {
+        playerYVelocity = 0;
+    }
     playerY += playerYVelocity;
-
+    
     // horizontal
-    if (isRightPressed && !isABloc(playerX + playerWidth / 2, playerY)) {
-        playerX += moveSpeed;
+    if (isRightPressed && !isABloc(playerX + PLAYER_WIDTH / 2, playerY)) {
+        playerX += MOVE_SPEED;
     }
-    if  (isLeftPressed && !isABloc(playerX - playerWidth / 2, playerY)) {
-        playerX -= moveSpeed;
+    if  (isLeftPressed && !isABloc(playerX - PLAYER_WIDTH / 2, playerY)) {
+        playerX -= MOVE_SPEED;
     }
-    //#endregion
 
+    // sol zombie
+    if (isABloc(zombieX, zombieY + ZOMBIE_HEIGHT + zombieYVelocity) && zombieYVelocity >= 0) {
+        zombieYVelocity = 0;
+        gravityZombie = false;
+    }else {
+        zombieYVelocity += GRAVITY_FORCE;
+        gravityZombie = true;
+    }
+       
+    
+    // horizontal zombie
+    if (zombieX < playerX && (isABloc(zombieX + ZOMBIE_WIDTH, zombieY + ZOMBIE_HEIGHT / 2) || isABloc(zombieX + ZOMBIE_WIDTH, zombieY))) {
+        isZombieBlockedOnSide = true;
+        zombieX -= ZOMBIE_MOVE_SPEED;
+    }
+    if (zombieX > playerX && (isABloc(zombieX, zombieY + ZOMBIE_HEIGHT / 2) || isABloc(zombieX, zombieY))) {
+        isZombieBlockedOnSide = true;
+        zombieX += ZOMBIE_MOVE_SPEED;
+    }
+
+    //deplace le zombie
+    if (zombieX > playerX && isZombieBlockedOnSide === false && zombieX - playerX > -1 && zombieX - playerX < ZOMBIE_FOLLOW_DISTANCE) {
+        zombieX -= ZOMBIE_MOVE_SPEED;
+    }
+    if (zombieX < playerX && isZombieBlockedOnSide === false  && playerX - zombieX > -1 && playerX - zombieX < ZOMBIE_FOLLOW_DISTANCE) {
+        zombieX += ZOMBIE_MOVE_SPEED;
+    }
+    if (gravityZombie === false && isZombieBlockedOnSide) {
+        zombieYVelocity = -ZOMBIE_JUMP_FORCE;
+    }
+    zombieY += zombieYVelocity;
+    
+    //#endregion
     //#region AFFICHAGE
     // clear le canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
-
-    //dessine le sol
-    context.fillStyle = "#1CDF1F";
-    context.fillRect(0, canvas.height - cameraY - 40, canvas.width, canvas.height);
-
+    
     // dessine les blocs
-    for (var i = 0; i < blockData.length; i++) {
-        context.drawImage(blockTextures[blockData[i][2]], blockData[i][0] - cameraX, blockData[i][1] - cameraY, 50, 50);
+    var playerChunk = parseInt(parseInt(playerX / BLOCKSIZE) / 16) - (playerX < 0 ? 1 : 0);
+    for (var i = playerChunk - renderDistance; i <= playerChunk + renderDistance ; i++) {
+        var blocks = getChunkBlocks(i);
+        for (var j = 0; j < blocks.length; j++) {
+            context.drawImage(blockTextures[blocks[j][2]], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);
+        }
+        
     }
+
+    //dessine le zombie
+    context.fillStyle = "blue";
+    context.fillRect(zombieX - cameraX, zombieY - cameraY, ZOMBIE_WIDTH, ZOMBIE_HEIGHT);
     
     // dessine le joueur
-    context.drawImage(playerSprite, playerX - cameraX - playerWidth / 2, playerY - cameraY - playerHeight / 2, playerWidth, playerHeight);
-        
-    // dessines le carré noir
+    context.drawImage(playerSprite, playerX - cameraX - PLAYER_WIDTH / 2, playerY - cameraY - PLAYER_HEIGHT / 2, PLAYER_WIDTH, PLAYER_HEIGHT);
+
+    // dessine le carré noir
     context.strokeSytle = "black";
     context.lineWidth = 3;
     context.strokeRect(blockX - cameraX, blockY - cameraY, 50, 50);
-
+   
     // dessine la hotbar
     var hotbarCellSize = 50;
     var hotbarHeight = 20;
@@ -197,7 +247,6 @@ function loop() {
         // case
         context.drawImage(hotbarCellSprite, hotbarStartX + cellIndex * hotbarCellSize,
         canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
-
         // item
         context.drawImage(blockTextures[hotbarContent[cellIndex]], hotbarStartX + cellIndex * hotbarCellSize + itemsMargin,
         canvas.height - hotbarCellSize - hotbarHeight + itemsMargin, hotbarCellSize - 2 * itemsMargin, hotbarCellSize - 2 * itemsMargin);
@@ -205,39 +254,71 @@ function loop() {
     // selecteur
     context.drawImage(hotbarSelectorSprite, hotbarStartX + usedHotbarID * hotbarCellSize,
     canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
-    //#endregion
 
+    //#endregion
     //#region POSER/CASSER
+    // trouve le bon chunk
+    var chunk = parseInt(parseInt(blockX / BLOCKSIZE) / 16) - (blockX < 0 ? 1 : 0);
+    var chunkIndex = modifiedChunks.length;
+    for (var i = 0; i < modifiedChunks.length; i++) {
+        if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) == chunk) {
+            chunkIndex = i;
+        }
+    }
     //poser bloc
     if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2)) {
-        //permet au joueur de poser un bloc uniquement a cote d'un autre bloc
+        // si le chunk n'etait pas modifié creer le terrain
+        if (modifiedChunks[chunkIndex] == null) {
+            var terrain = [];
+            for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
+                terrain.push(getChunkBlocks(chunkIndex)[i]);
+            }
+            modifiedChunks.push([]);
+            for (var i = 0; i < terrain.length; i++) {
+                modifiedChunks[modifiedChunks.length - 1].push(terrain[i]);
+            }
+        }
+        // poser
         if (isABloc(blockX, blockY + BLOCKSIZE * 1.5) || isABloc(blockX, blockY - BLOCKSIZE * 1.5) || isABloc(blockX + BLOCKSIZE * 1.5, blockY) || isABloc(blockX - BLOCKSIZE * 1.5, blockY) ||
-            mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
+        mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
+            if (chunkIndex == modifiedChunks.length) {
+                modifiedChunks.push([]);
+            }
             var newBlock = [blockX, blockY, hotbarContent[usedHotbarID]];
-            blockData.push(newBlock);
+            modifiedChunks[chunkIndex].push(newBlock);
         }
     }
-
+    
     //casser bloc
-    for (var i = 0; i < blockData.length; i++) {
-        if (blockX == blockData[i][0] && blockY == blockData[i][1] && isRightClicked) {
-            blockData.splice(i, 1);
+    if (isRightClicked) {
+        // si le chunk n'etait pas modifié creer le terrain
+        if (modifiedChunks[chunkIndex] == null) {
+            var terrain = [];
+            for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
+                terrain.push(getChunkBlocks(chunkIndex)[i]);
+            }
+            modifiedChunks.push([]);
+            for (var i = 0; i < terrain.length; i++) {
+                modifiedChunks[modifiedChunks.length - 1].push(terrain[i]);
+            }
+        }
+        for (var i = 0; i < modifiedChunks[chunkIndex].length; i++) {
+            if (blockX == modifiedChunks[chunkIndex][i][0] && blockY == modifiedChunks[chunkIndex][i][1]) {
+                modifiedChunks[chunkIndex].splice(i, 1);
+            }
         }
     }
     //#endregion
-
     isClicked = false;
     isRightClicked = false;
+    isZombieBlockedOnSide = false;
     requestAnimationFrame(loop);
 }
-
+//#region INPUTS
 //position de la souris
 canvas.addEventListener("mousemove", (e) => {
     mouseScreenPosX = e.clientX;
     mouseScreenPosY = e.clientY;
-    if (mouseScreenPosY >= canvas.height - cameraY * 1.5) {
-        mouseScreenPosY = canvas.height - cameraY * 1.5;
-    }
 });
 //molette
 canvas.addEventListener("wheel", (e) => {
@@ -270,8 +351,8 @@ document.addEventListener('keydown', function(e) {
         isLeftPressed = true;
     }
     // saut
-    if (e.which === 32 && groundDistance(playerX, playerY + playerHeight / 2, playerWidth) <= 5) {
-        playerYVelocity = -15;
+    if (e.which === 32 && isABloc(playerX, playerY + PLAYER_HEIGHT / 2 + 5)) {
+        playerYVelocity = -JUMP_FORCE;
     }
 });
 document.addEventListener('keyup', function(e) {
@@ -284,6 +365,6 @@ document.addEventListener('keyup', function(e) {
         isLeftPressed = false;
     }
 });
-
+//#endregion
 // demarre le jeu
 requestAnimationFrame(loop);
