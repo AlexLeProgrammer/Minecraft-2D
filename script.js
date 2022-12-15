@@ -34,19 +34,57 @@ var renderDistance = 2;
 var playerSprite = new Image();
 playerSprite.src = 'sprites/player.png';
 var hotbarCellSprite = new Image();
-hotbarCellSprite.src = 'sprites/hotbarFrame.png';
+hotbarCellSprite.src = 'sprites/UI/hotbarFrame.png';
 var hotbarSelectorSprite = new Image();
-hotbarSelectorSprite.src = 'sprites/hotbarSelector.png';
+hotbarSelectorSprite.src = 'sprites/UI/hotbarSelector.png';
+
+//textures des portails
+var portalAnimationFrames;
+for (var i = 0; i < 32; i++) {
+    portalAnimationFrames.push(new Image());
+}
+portalAnimationFrames[0].src = 'sprites/blocks/portal_animation_frames/portal_(1).png';
+portalAnimationFrames[1].src = 'sprites/blocks/portal_animation_frames/portal_(2).png';
+portalAnimationFrames[2].src = 'sprites/blocks/portal_animation_frames/portal_(3).png';
+portalAnimationFrames[3].src = 'sprites/blocks/portal_animation_frames/portal_(4).png';
+portalAnimationFrames[4].src = 'sprites/blocks/portal_animation_frames/portal_(5).png';
+portalAnimationFrames[5].src = 'sprites/blocks/portal_animation_frames/portal_(6).png';
+portalAnimationFrames[6].src = 'sprites/blocks/portal_animation_frames/portal_(7).png';
+portalAnimationFrames[7].src = 'sprites/blocks/portal_animation_frames/portal_(8).png';
+portalAnimationFrames[8].src = 'sprites/blocks/portal_animation_frames/portal_(9).png';
+portalAnimationFrames[9].src = 'sprites/blocks/portal_animation_frames/portal_(10).png';
+portalAnimationFrames[10].src = 'sprites/blocks/portal_animation_frames/portal_(11).png';
+portalAnimationFrames[11].src = 'sprites/blocks/portal_animation_frames/portal_(12).png';
+portalAnimationFrames[12].src = 'sprites/blocks/portal_animation_frames/portal_(13).png';
+portalAnimationFrames[13].src = 'sprites/blocks/portal_animation_frames/portal_(14).png';
+portalAnimationFrames[14].src = 'sprites/blocks/portal_animation_frames/portal_(15).png';
+portalAnimationFrames[15].src = 'sprites/blocks/portal_animation_frames/portal_(16).png';
+portalAnimationFrames[16].src = 'sprites/blocks/portal_animation_frames/portal_(17).png';
+portalAnimationFrames[17].src = 'sprites/blocks/portal_animation_frames/portal_(18).png';
+portalAnimationFrames[18].src = 'sprites/blocks/portal_animation_frames/portal_(19).png';
+portalAnimationFrames[19].src = 'sprites/blocks/portal_animation_frames/portal_(20).png';
+portalAnimationFrames[20].src = 'sprites/blocks/portal_animation_frames/portal_(21).png';
+portalAnimationFrames[21].src = 'sprites/blocks/portal_animation_frames/portal_(22).png';
+portalAnimationFrames[22].src = 'sprites/blocks/portal_animation_frames/portal_(23).png';
+portalAnimationFrames[23].src = 'sprites/blocks/portal_animation_frames/portal_(24).png';
+portalAnimationFrames[24].src = 'sprites/blocks/portal_animation_frames/portal_(25).png';
+portalAnimationFrames[25].src = 'sprites/blocks/portal_animation_frames/portal_(26).png';
+portalAnimationFrames[26].src = 'sprites/blocks/portal_animation_frames/portal_(27).png';
+portalAnimationFrames[27].src = 'sprites/blocks/portal_animation_frames/portal_(28).png';
+portalAnimationFrames[28].src = 'sprites/blocks/portal_animation_frames/portal_(29).png';
+portalAnimationFrames[29].src = 'sprites/blocks/portal_animation_frames/portal_(30).png';
+portalAnimationFrames[30].src = 'sprites/blocks/portal_animation_frames/portal_(31).png';
+portalAnimationFrames[31].src = 'sprites/blocks/portal_animation_frames/portal_(32).png';
 
 // textures des blocs
 var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image()];
-blockTextures[0].src = 'sprites/oak_plank.png';
-blockTextures[1].src = 'sprites/grass.png';
-blockTextures[2].src = 'sprites/dirt.png';
-blockTextures[3].src = 'sprites/obsidian.png';
-blockTextures[4].src = 'sprites/sand.png';
-blockTextures[5].src = 'sprites/stone.png';
-blockTextures[6].src = 'sprites/flintandsteel.png';
+blockTextures[0].src = 'sprites/blocks/oak_plank.png';
+blockTextures[1].src = 'sprites/blocks/grass.png';
+blockTextures[2].src = 'sprites/blocks/dirt.png';
+blockTextures[3].src = 'sprites/blocks/obsidian.png';
+blockTextures[4].src = 'sprites/blocks/sand.png';
+blockTextures[5].src = 'sprites/blocks/stone.png';
+blockTextures[6].src = 'sprites/Items/flintandsteel.png';
 
 // hotbar
 var hotbarContent = [0, 1, 2, 3, 4, 5, 1, 0, 6];
