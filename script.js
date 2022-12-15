@@ -13,7 +13,8 @@ const ZOMBIE_MOVE_SPEED = 2;
 const PLAYER_WIDTH = 42.5;
 const PLAYER_HEIGHT = 85;
 const ZOMBIE_WIDTH = 50;
-const ZOMBIE_HEIGHT = 90;
+const ZOMBIE_HEIGHT = 100;
+const ZOMBIE_FOLLOW_DISTANCE = 600;
 
 //variables
 var playerX = 0;
@@ -189,20 +190,20 @@ function loop() {
        
     
     // horizontal zombie
-    if (zombieX < playerX && isABloc(zombieX + ZOMBIE_WIDTH, zombieY + ZOMBIE_HEIGHT / 2 + ZOMBIE_HEIGHT / 4)) {
+    if (zombieX < playerX && (isABloc(zombieX + ZOMBIE_WIDTH, zombieY + ZOMBIE_HEIGHT / 2) || isABloc(zombieX + ZOMBIE_WIDTH, zombieY))) {
         isZombieBlockedOnSide = true;
         zombieX -= ZOMBIE_MOVE_SPEED;
     }
-    if (zombieX > playerX && isABloc(zombieX, zombieY + ZOMBIE_HEIGHT / 2 + ZOMBIE_HEIGHT / 4)) {
+    if (zombieX > playerX && (isABloc(zombieX, zombieY + ZOMBIE_HEIGHT / 2) || isABloc(zombieX, zombieY))) {
         isZombieBlockedOnSide = true;
         zombieX += ZOMBIE_MOVE_SPEED;
     }
 
     //deplace le zombie
-    if (zombieX > playerX && isZombieBlockedOnSide === false) {
+    if (zombieX > playerX && isZombieBlockedOnSide === false && zombieX - playerX > -1 && zombieX - playerX < ZOMBIE_FOLLOW_DISTANCE) {
         zombieX -= ZOMBIE_MOVE_SPEED;
     }
-    if (zombieX < playerX && isZombieBlockedOnSide === false) {
+    if (zombieX < playerX && isZombieBlockedOnSide === false  && playerX - zombieX > -1 && playerX - zombieX < ZOMBIE_FOLLOW_DISTANCE) {
         zombieX += ZOMBIE_MOVE_SPEED;
     }
     if (gravityZombie === false && isZombieBlockedOnSide) {
@@ -227,7 +228,7 @@ function loop() {
 
     //dessine le zombie
     context.fillStyle = "blue";
-    context.fillRect(zombieX - cameraX, zombieY - cameraY, 50, 90);
+    context.fillRect(zombieX - cameraX, zombieY - cameraY, ZOMBIE_WIDTH, ZOMBIE_HEIGHT);
     
     // dessine le joueur
     context.drawImage(playerSprite, playerX - cameraX - PLAYER_WIDTH / 2, playerY - cameraY - PLAYER_HEIGHT / 2, PLAYER_WIDTH, PLAYER_HEIGHT);
