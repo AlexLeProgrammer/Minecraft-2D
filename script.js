@@ -88,9 +88,6 @@ blockTextures[4].src = 'sprites/blocks/sand.png';
 blockTextures[5].src = 'sprites/blocks/stone.png';
 blockTextures[6].src = 'sprites/items/flint_and_steel.png';
 
-// hotbar
-var hotbarContent = [0, 1, 2, 3, 4, 5, 1, 0, 6];
-
 //variables des blocs
 var modifiedChunks = [];
 var blockX = 0;
@@ -123,6 +120,18 @@ var portalPose = [];
 var isAPortal = false;
 var portalFrameCounter = 0;
 var portalFrameCounterSlower = 0;
+
+// gui
+const GUI_SIZE = 50;
+var inventoryOpen = false;
+var inventorySprite = new Image();
+inventorySprite.src = "sprites/UI/inventory.png"
+// hotbar
+var hotbarContent = [0, 1, 2, 3, 4, 5, 1, 0, 6];
+var inventoryContent = [6, 3, 0, 3, 1, 5, 4, 0, 1,
+                        2, 1, 3, 3, 1, 5, 6, 0, 1,
+                        2, 3, 0, 0, 1, 5, 4, 5, 1,]
+
 
 noise.seed(Math.random());
 //permet de generer un nombre aleatoire
@@ -285,6 +294,7 @@ function loop() {
     }
     
     //#endregion
+
     //#region AFFICHAGE
     // clear le canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -332,7 +342,7 @@ function loop() {
     context.strokeRect(blockX - cameraX, blockY - cameraY, 50, 50);
    
     // dessine la hotbar
-    var hotbarCellSize = 50;
+    var hotbarCellSize = GUI_SIZE;
     var hotbarHeight = 20;
     var itemsMargin = 10;
     var hotbarStartX = canvas.width / 2 - hotbarCellSize * 9 / 2;
@@ -348,7 +358,43 @@ function loop() {
     context.drawImage(hotbarSelectorSprite, hotbarStartX + usedHotbarID * hotbarCellSize,
     canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
 
+    // dessine l'inventaire
+    var inventorySizeX = GUI_SIZE * 10
+    var inventorySizeY = 166 * inventorySizeX / 176;
+    if (inventoryOpen) {
+        context.drawImage(
+            inventorySprite,
+            canvas.width / 2 - inventorySizeX / 2,
+            canvas.height / 2 - inventorySizeY / 2,
+            inventorySizeX,
+            inventorySizeY
+        );
+        // content
+        for (var y = 0; y < 3; y++) {
+            for (var x = 0; x < 9; x++) {
+                context.drawImage(
+                    blockTextures[inventoryContent[x + y * 9]],
+                    canvas.width / 2 - inventorySizeX / 2 + GUI_SIZE * 0.55 + GUI_SIZE * x * 1.02,
+                    canvas.height / 2 + inventorySizeY / 2 - GUI_SIZE * 2.55 - GUI_SIZE * y,
+                    GUI_SIZE * 0.75,
+                    GUI_SIZE * 0.75
+                    );
+            }
+        }
+        // hotbar
+        for (var i = 0; i < 9; i++) {
+            context.drawImage(
+                blockTextures[hotbarContent[i]],
+                canvas.width / 2 - inventorySizeX / 2 + GUI_SIZE * 0.55 + GUI_SIZE * i * 1.02,
+                canvas.height / 2 + inventorySizeY / 2 - GUI_SIZE * 1.3,
+                GUI_SIZE * 0.75,
+                GUI_SIZE * 0.75
+                );
+        }
+    }
+
     //#endregion
+
     //#region POSER/CASSER
     // trouve le bon chunk
     var chunk = parseInt(parseInt(blockX / BLOCKSIZE) / 16) - (blockX < 0 ? 1 : 0);
@@ -414,6 +460,9 @@ function loop() {
         portalFrameCounterSlower++;
     }
     //#endregion
+
+    //#region INVENTAIRE
+    //#endregion
     isClicked = false;
     isRightClicked = false;
     isZombieBlockedOnSide = false;
@@ -459,8 +508,13 @@ document.addEventListener('keydown', function(e) {
     if (e.which === 32 && isABloc(playerX, playerY + PLAYER_HEIGHT / 2 + 5)) {
         playerYVelocity = -JUMP_FORCE;
     }
+    // enventaire (e)
+    if (e.which === 69) {
+        inventoryOpen = !inventoryOpen;
+    }
 });
 document.addEventListener('keyup', function(e) {
+    
     // droite
     if (e.which === 39 || e.which == 68) {
         isRightPressed = false;
