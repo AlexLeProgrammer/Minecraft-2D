@@ -34,9 +34,11 @@ var renderDistance = 2;
 var playerSprite = new Image();
 playerSprite.src = 'sprites/player.png';
 var hotbarCellSprite = new Image();
-hotbarCellSprite.src = 'sprites/UI/hotbarFrame.png';
+hotbarCellSprite.src = 'sprites/gui/hotbarFrame.png';
 var hotbarSelectorSprite = new Image();
-hotbarSelectorSprite.src = 'sprites/UI/hotbarSelector.png';
+hotbarSelectorSprite.src = 'sprites/gui/hotbarSelector.png';
+var zombieSprite = new Image();
+zombieSprite.src = 'sprites/entities/zombie.png';
 
 //textures des portails
 var portalAnimationFrames = [];
@@ -84,7 +86,7 @@ blockTextures[2].src = 'sprites/blocks/dirt.png';
 blockTextures[3].src = 'sprites/blocks/obsidian.png';
 blockTextures[4].src = 'sprites/blocks/sand.png';
 blockTextures[5].src = 'sprites/blocks/stone.png';
-blockTextures[6].src = 'sprites/Items/flint_and_steel.png';
+blockTextures[6].src = 'sprites/items/flint_and_steel.png';
 
 // hotbar
 var hotbarContent = [0, 1, 2, 3, 4, 5, 1, 0, 6];
@@ -141,13 +143,13 @@ function isABloc(x, y) {
     return result;
 }
 //detecte si il y a un bloc- d'obsidienne a des coordonnees precises
-function isAnObsidianBloc(x, y) {
+function isASpecificBlock(x, y, id) {
     var chunk = parseInt(parseInt(x / BLOCKSIZE) / 16) - (x < 0 ? 1 : 0);
     var chunkBlocks = getChunkBlocks(chunk);
     var result = false;
     for (var i = 0; i < chunkBlocks.length; i++) {
         if (chunkBlocks[i][0] <= x && chunkBlocks[i][0] + BLOCKSIZE >= x && chunkBlocks[i][1] <= y && chunkBlocks[i][1] + BLOCKSIZE >= y &&
-            chunkBlocks[i][2] === 3) {
+            chunkBlocks[i][2] === id) {
             result = true;
         }
     }
@@ -270,41 +272,41 @@ function loop() {
     zombieY += zombieYVelocity;
     
     //portail
-    if(isClicked && usedHotbarID === 8) {
-        if (isAnObsidianBloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2)) { //bloc 1
-            if (isAnObsidianBloc(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE)) { //bloc  2
-                if (isAnObsidianBloc(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 2)) { //bloc  3
-                    if (isAnObsidianBloc(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 3)) { //bloc  4
-                        if (isAnObsidianBloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 4)) { //bloc  5
-                            if (isAnObsidianBloc(blockX + BLOCKSIZE / 2 + BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 4)) { //bloc  6
-                                if (isAnObsidianBloc(blockX + BLOCKSIZE / 2 + BLOCKSIZE * 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 3)) { //bloc  7
-                                    if (isAnObsidianBloc(blockX + BLOCKSIZE / 2 + BLOCKSIZE * 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 2)) { //bloc  8
-                                        if (isAnObsidianBloc(blockX + BLOCKSIZE / 2 + BLOCKSIZE * 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE)) { //bloc  9
-                                            if (isAnObsidianBloc(blockX + BLOCKSIZE / 2 + BLOCKSIZE, blockY + BLOCKSIZE / 2)) { //bloc  10
-                                                portalPose[0] = blockX;
-                                                portalPose[1] = blockY;
-                                                isAPortal = true;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }   
-                    }
-                }
-            }
+    if(isClicked && hotbarContent[usedHotbarID] === 6) {
+        if (isASpecificBlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE, 3) &&
+        isASpecificBlock(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 2, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 3, 3) &&
+        isASpecificBlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 4, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 + BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 4, 3) &&
+        isASpecificBlock(blockX + BLOCKSIZE / 2 + BLOCKSIZE * 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 3, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 + BLOCKSIZE * 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 2, 3) &&
+        isASpecificBlock(blockX + BLOCKSIZE / 2 + BLOCKSIZE * 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 + BLOCKSIZE, blockY + BLOCKSIZE / 2, 3)) {
+            portalPose[0] = blockX;
+            portalPose[1] = blockY;
+            isAPortal = true;
         }
     }
+    
+    //sable 4
+    
     //#endregion
     //#region AFFICHAGE
     // clear le canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
     
-    // dessine les blocs
     var playerChunk = parseInt(parseInt(playerX / BLOCKSIZE) / 16) - (playerX < 0 ? 1 : 0);
     for (var i = playerChunk - renderDistance; i <= playerChunk + renderDistance ; i++) {
         var blocks = getChunkBlocks(i);
         for (var j = 0; j < blocks.length; j++) {
+            //gere le sable
+            if (blocks[j][2] === 4) {
+                if (isABloc(blocks[j][0] + 1, blocks[j][1] + BLOCKSIZE + 1 + blocks[j][3])) {
+                    blocks[j][3] = 0;
+                    blocks[j][0] = parseInt(blocks[j][0] / BLOCKSIZE) * BLOCKSIZE;
+                    blocks[j][1] = parseInt(blocks[j][1] / BLOCKSIZE) * BLOCKSIZE;
+                }else {
+                    blocks[j][3] += GRAVITY_FORCE;
+                }
+                blocks[j][1] += blocks[j][3];
+            }
+            // dessine les blocs
             context.drawImage(blockTextures[blocks[j][2]], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);
         }
         
@@ -320,10 +322,9 @@ function loop() {
         context.drawImage(portalAnimationFrames[portalFrameCounter], portalPose[0] + BLOCKSIZE - cameraX, portalPose[1] - BLOCKSIZE * 3 - cameraY, BLOCKSIZE, BLOCKSIZE);
     }
 
-    /*dessine le zombie
-    context.fillStyle = "blue";
-    context.fillRect(zombieX - cameraX, zombieY - cameraY, ZOMBIE_WIDTH, ZOMBIE_HEIGHT);
-    */
+    //dessine le zombie
+    context.drawImage(zombieSprite, zombieX - cameraX, zombieY - cameraY, ZOMBIE_WIDTH, ZOMBIE_HEIGHT);
+    
     // dessine le joueur
     context.drawImage(playerSprite, playerX - cameraX - PLAYER_WIDTH / 2, playerY - cameraY - PLAYER_HEIGHT / 2, PLAYER_WIDTH, PLAYER_HEIGHT);
 
@@ -378,7 +379,7 @@ function loop() {
             if (chunkIndex == modifiedChunks.length) {
                 modifiedChunks.push([]);
             }
-            var newBlock = [blockX, blockY, hotbarContent[usedHotbarID]];
+            var newBlock = [blockX, blockY, hotbarContent[usedHotbarID], 0];
             modifiedChunks[chunkIndex].push(newBlock);
         }
     }
