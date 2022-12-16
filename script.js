@@ -78,6 +78,44 @@ portalAnimationFrames[29].src = 'sprites/blocks/portal_animation_frames/portal_ 
 portalAnimationFrames[30].src = 'sprites/blocks/portal_animation_frames/portal_ (31).png';
 portalAnimationFrames[31].src = 'sprites/blocks/portal_animation_frames/portal_ (32).png';
 
+//textures du feux
+var fireAnimationFrames = [];
+for (var i = 0; i < 32; i++) {
+    fireAnimationFrames.push(new Image());
+}
+fireAnimationFrames[0].src = 'sprites/blocks/fire_animation_frames/fire_ (1).png';
+fireAnimationFrames[1].src = 'sprites/blocks/fire_animation_frames/fire_ (2).png';
+fireAnimationFrames[2].src = 'sprites/blocks/fire_animation_frames/fire_ (3).png';
+fireAnimationFrames[3].src = 'sprites/blocks/fire_animation_frames/fire_ (4).png';
+fireAnimationFrames[4].src = 'sprites/blocks/fire_animation_frames/fire_ (5).png';
+fireAnimationFrames[5].src = 'sprites/blocks/fire_animation_frames/fire_ (6).png';
+fireAnimationFrames[6].src = 'sprites/blocks/fire_animation_frames/fire_ (7).png';
+fireAnimationFrames[7].src = 'sprites/blocks/fire_animation_frames/fire_ (8).png';
+fireAnimationFrames[8].src = 'sprites/blocks/fire_animation_frames/fire_ (9).png';
+fireAnimationFrames[9].src = 'sprites/blocks/fire_animation_frames/fire_ (10).png';
+fireAnimationFrames[10].src = 'sprites/blocks/fire_animation_frames/fire_ (11).png';
+fireAnimationFrames[11].src = 'sprites/blocks/fire_animation_frames/fire_ (12).png';
+fireAnimationFrames[12].src = 'sprites/blocks/fire_animation_frames/fire_ (13).png';
+fireAnimationFrames[13].src = 'sprites/blocks/fire_animation_frames/fire_ (14).png';
+fireAnimationFrames[14].src = 'sprites/blocks/fire_animation_frames/fire_ (15).png';
+fireAnimationFrames[15].src = 'sprites/blocks/fire_animation_frames/fire_ (16).png';
+fireAnimationFrames[16].src = 'sprites/blocks/fire_animation_frames/fire_ (17).png';
+fireAnimationFrames[17].src = 'sprites/blocks/fire_animation_frames/fire_ (18).png';
+fireAnimationFrames[18].src = 'sprites/blocks/fire_animation_frames/fire_ (19).png';
+fireAnimationFrames[19].src = 'sprites/blocks/fire_animation_frames/fire_ (20).png';
+fireAnimationFrames[20].src = 'sprites/blocks/fire_animation_frames/fire_ (21).png';
+fireAnimationFrames[21].src = 'sprites/blocks/fire_animation_frames/fire_ (22).png';
+fireAnimationFrames[22].src = 'sprites/blocks/fire_animation_frames/fire_ (23).png';
+fireAnimationFrames[23].src = 'sprites/blocks/fire_animation_frames/fire_ (24).png';
+fireAnimationFrames[24].src = 'sprites/blocks/fire_animation_frames/fire_ (25).png';
+fireAnimationFrames[25].src = 'sprites/blocks/fire_animation_frames/fire_ (26).png';
+fireAnimationFrames[26].src = 'sprites/blocks/fire_animation_frames/fire_ (27).png';
+fireAnimationFrames[27].src = 'sprites/blocks/fire_animation_frames/fire_ (28).png';
+fireAnimationFrames[28].src = 'sprites/blocks/fire_animation_frames/fire_ (29).png';
+fireAnimationFrames[29].src = 'sprites/blocks/fire_animation_frames/fire_ (30).png';
+fireAnimationFrames[30].src = 'sprites/blocks/fire_animation_frames/fire_ (31).png';
+fireAnimationFrames[31].src = 'sprites/blocks/fire_animation_frames/fire_ (32).png';
+
 // textures des blocs
 var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image()];
 blockTextures[0].src = 'sprites/blocks/oak_plank.png';
@@ -121,8 +159,11 @@ var isZombieBlockedOnSide = false;
 //portail du nether
 var portalPose = [];
 var isAPortal = false;
-var portalFrameCounter = 0;
-var portalFrameCounterSlower = 0;
+var animationFrameCounter = 0;
+var animationFrameCounterSlower = 0;
+
+//feux
+var isAFire = 0;
 
 noise.seed(Math.random());
 //permet de generer un nombre aleatoire
@@ -142,7 +183,7 @@ function isABloc(x, y) {
     }
     return result;
 }
-//detecte si il y a un bloc- d'obsidienne a des coordonnees precises
+//detecte si il y a un bloc specifique a des coordonnees precises
 function isASpecificBlock(x, y, id) {
     var chunk = parseInt(parseInt(x / BLOCKSIZE) / 16) - (x < 0 ? 1 : 0);
     var chunkBlocks = getChunkBlocks(chunk);
@@ -219,23 +260,23 @@ function loop() {
     //#region PHISIQUES
     // vertical
     // sol
-    if (isABloc(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity) && playerYVelocity >= 0) {
+    if (isABloc(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity) && playerYVelocity >= 0 && !isASpecificBlock(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity, 6)) {
         playerYVelocity = 0;
     }else {
         playerYVelocity += GRAVITY_FORCE;
     }
     
     // toit
-    if (isABloc(playerX, playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2) && playerYVelocity <= 0) {
+    if (isABloc(playerX, playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2) && !isASpecificBlock(playerX, playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2, 6) && playerYVelocity <= 0) {
         playerYVelocity = 0;
     }
     playerY += playerYVelocity;
     
     // horizontal
-    if (isRightPressed && !isABloc(playerX + PLAYER_WIDTH / 2, playerY)) {
+    if (isRightPressed && (!isABloc(playerX + PLAYER_WIDTH / 2, playerY) || isASpecificBlock(playerX + PLAYER_WIDTH / 2, playerY, 6))) {
         playerX += MOVE_SPEED;
     }
-    if  (isLeftPressed && !isABloc(playerX - PLAYER_WIDTH / 2, playerY)) {
+    if  (isLeftPressed && (!isABloc(playerX - PLAYER_WIDTH / 2, playerY) || isASpecificBlock(playerX - PLAYER_WIDTH / 2, playerY, 6))) {
         playerX -= MOVE_SPEED;
     }
 
@@ -305,19 +346,23 @@ function loop() {
                 blocks[j][1] += blocks[j][3];
             }
             // dessine les blocs
-            context.drawImage(blockTextures[blocks[j][2]], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);
+            if (blocks[j][2] === 6) {
+                context.drawImage(fireAnimationFrames[animationFrameCounter], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);  
+            } else {
+                context.drawImage(blockTextures[blocks[j][2]], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);
+            }
         }
         
     }
 
     //dessine les blocs de portail
     if (isAPortal) {
-        context.drawImage(portalAnimationFrames[portalFrameCounter], portalPose[0] - cameraX, portalPose[1] - BLOCKSIZE - cameraY, BLOCKSIZE, BLOCKSIZE);
-        context.drawImage(portalAnimationFrames[portalFrameCounter], portalPose[0] - cameraX, portalPose[1] - BLOCKSIZE * 2 - cameraY, BLOCKSIZE, BLOCKSIZE);
-        context.drawImage(portalAnimationFrames[portalFrameCounter], portalPose[0] - cameraX, portalPose[1] - BLOCKSIZE * 3 - cameraY, BLOCKSIZE, BLOCKSIZE);
-        context.drawImage(portalAnimationFrames[portalFrameCounter], portalPose[0] + BLOCKSIZE - cameraX, portalPose[1] - BLOCKSIZE - cameraY, BLOCKSIZE, BLOCKSIZE);
-        context.drawImage(portalAnimationFrames[portalFrameCounter], portalPose[0] + BLOCKSIZE - cameraX, portalPose[1] - BLOCKSIZE * 2 - cameraY, BLOCKSIZE, BLOCKSIZE);
-        context.drawImage(portalAnimationFrames[portalFrameCounter], portalPose[0] + BLOCKSIZE - cameraX, portalPose[1] - BLOCKSIZE * 3 - cameraY, BLOCKSIZE, BLOCKSIZE);
+        context.drawImage(portalAnimationFrames[animationFrameCounter], portalPose[0] - cameraX, portalPose[1] - BLOCKSIZE - cameraY, BLOCKSIZE, BLOCKSIZE);
+        context.drawImage(portalAnimationFrames[animationFrameCounter], portalPose[0] - cameraX, portalPose[1] - BLOCKSIZE * 2 - cameraY, BLOCKSIZE, BLOCKSIZE);
+        context.drawImage(portalAnimationFrames[animationFrameCounter], portalPose[0] - cameraX, portalPose[1] - BLOCKSIZE * 3 - cameraY, BLOCKSIZE, BLOCKSIZE);
+        context.drawImage(portalAnimationFrames[animationFrameCounter], portalPose[0] + BLOCKSIZE - cameraX, portalPose[1] - BLOCKSIZE - cameraY, BLOCKSIZE, BLOCKSIZE);
+        context.drawImage(portalAnimationFrames[animationFrameCounter], portalPose[0] + BLOCKSIZE - cameraX, portalPose[1] - BLOCKSIZE * 2 - cameraY, BLOCKSIZE, BLOCKSIZE);
+        context.drawImage(portalAnimationFrames[animationFrameCounter], portalPose[0] + BLOCKSIZE - cameraX, portalPose[1] - BLOCKSIZE * 3 - cameraY, BLOCKSIZE, BLOCKSIZE);
     }
 
     //dessine le zombie
@@ -359,7 +404,7 @@ function loop() {
         }
     }
     //poser bloc
-    if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && hotbarContent[usedHotbarID] != 6) {
+    if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2)) {
         // si le chunk n'etait pas modifié creer le terrain
         if (modifiedChunks[chunkIndex] == null) {
             var terrain = [];
@@ -372,7 +417,7 @@ function loop() {
             }
         }
         // poser
-        if (isABloc(blockX, blockY + BLOCKSIZE) || isABloc(blockX + BLOCKSIZE, blockY) || canPlaceAir) {
+        if ((isABloc(blockX, blockY + BLOCKSIZE) && !isASpecificBlock(blockX, blockY + BLOCKSIZE, 6)) || (isABloc(blockX + BLOCKSIZE, blockY) && !isASpecificBlock(blockX + BLOCKSIZE, blockY)) || canPlaceAir) {
             if (chunkIndex == modifiedChunks.length) {
                 modifiedChunks.push([]);
             }
@@ -402,21 +447,22 @@ function loop() {
     }
 
     //compte les image de l'animation du portail
-    if (portalFrameCounterSlower === 2) {
-        portalFrameCounterSlower = 0;
+    if (animationFrameCounterSlower === 2) {
+        animationFrameCounterSlower = 0;
 
-        if(portalFrameCounter === 31) {
-            portalFrameCounter = 0;
+        if(animationFrameCounter === 31) {
+            animationFrameCounter = 0;
         } else {
-            portalFrameCounter++;
+            animationFrameCounter++;
         }
     } else {
-        portalFrameCounterSlower++;
+        animationFrameCounterSlower++;
     }
     //#endregion
     isClicked = false;
     isRightClicked = false;
     isZombieBlockedOnSide = false;
+    isAFire = 0;
     requestAnimationFrame(loop);
 }
 //#region INPUTS
