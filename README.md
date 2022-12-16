@@ -7,3 +7,11 @@
 * Space to jump
 * Left click to place block
 * Right click to destroy block
+* Placxe block like this for create a portal :
+ XXXX
+X    X
+X    X
+X    X
+ XXXX
+  
+  and use a flint and steel on the block in the down right of the portal
