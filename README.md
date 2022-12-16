@@ -6,4 +6,4 @@
 * AD or Arrows to move
 * Space to jump
 * Left click to place block
-* Shift to destroy block
+* Right click to destroy block
