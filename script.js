@@ -96,7 +96,7 @@ var modifiedChunks = [];
 var blockX = 0;
 var blockY = 0;
 var usedHotbarID = 0;
-var canPlaceAir = true;
+var canPlaceAir = false;
 var gravity = true;
 var cameraX = 0;
 var cameraY = 0;
@@ -284,8 +284,6 @@ function loop() {
         }
     }
     
-    //sable 4
-    
     //#endregion
     //#region AFFICHAGE
     // clear le canvas
@@ -361,7 +359,7 @@ function loop() {
         }
     }
     //poser bloc
-    if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && usedHotbarID != 8) {
+    if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && hotbarContent[usedHotbarID] != 6) {
         // si le chunk n'etait pas modifié creer le terrain
         if (modifiedChunks[chunkIndex] == null) {
             var terrain = [];
@@ -374,8 +372,7 @@ function loop() {
             }
         }
         // poser
-        if (isABloc(blockX, blockY + BLOCKSIZE * 1.5) || isABloc(blockX, blockY - BLOCKSIZE * 1.5) || isABloc(blockX + BLOCKSIZE * 1.5, blockY) || isABloc(blockX - BLOCKSIZE * 1.5, blockY) ||
-        mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
+        if (isABloc(blockX, blockY + BLOCKSIZE) || isABloc(blockX + BLOCKSIZE, blockY) || canPlaceAir) {
             if (chunkIndex == modifiedChunks.length) {
                 modifiedChunks.push([]);
             }
