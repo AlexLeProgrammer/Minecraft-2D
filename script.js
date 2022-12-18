@@ -17,7 +17,7 @@ const ZOMBIE_HEIGHT = 100;
 const ZOMBIE_FOLLOW_DISTANCE = 600;
 
 //variables
-var playerX = 0;
+var playerX = 100;
 var playerY = 0;
 
 //variables des inputs
@@ -39,6 +39,8 @@ var hotbarSelectorSprite = new Image();
 hotbarSelectorSprite.src = 'sprites/gui/hotbarSelector.png';
 var zombieSprite = new Image();
 zombieSprite.src = 'sprites/entities/zombie.png';
+var forcefield = new Image();
+forcefield.src = 'sprites/mist/forcefield.png';
 
 //textures des portails
 var portalAnimationFrames = [];
@@ -156,17 +158,20 @@ var isZombieBlockedOnSide = false;
 //portail du nether
 var portalPose = [];
 var isAPortal = false;
-var animationFrameCounter = 0;
-var animationFrameCounterSlower = 0;
 
 //feux
 var isAFire = 0;
+
+//animation
+var animationFrameCounter = 0;
+var animationFrameCounterSlower = 0;
+var borderFrameCounter = 0;
 
 // gui
 const GUI_SIZE = 50;
 var inventoryOpen = false;
 var inventorySprite = new Image();
-inventorySprite.src = "sprites/UI/inventory.png"
+inventorySprite.src = "sprites/gui/inventory.png"
 // hotbar
 var hotbarContent = [0, 1, 2, 3, 4, 5, 1, 0, 6];
 var inventoryContent = [6, 3, 0, 3, 1, 5, 4, 0, 1,
@@ -285,7 +290,7 @@ function loop() {
     if (isRightPressed && (!isABloc(playerX + PLAYER_WIDTH / 2, playerY) || isASpecificBlock(playerX + PLAYER_WIDTH / 2, playerY, 6))) {
         playerX += MOVE_SPEED;
     }
-    if  (isLeftPressed && (!isABloc(playerX - PLAYER_WIDTH / 2, playerY) || isASpecificBlock(playerX - PLAYER_WIDTH / 2, playerY, 6))) {
+    if  (isLeftPressed && (!isABloc(playerX - PLAYER_WIDTH / 2, playerY) || isASpecificBlock(playerX - PLAYER_WIDTH / 2, playerY, 6)) && playerX - PLAYER_WIDTH / 2 >= 5) {
         playerX -= MOVE_SPEED;
     }
 
@@ -365,6 +370,13 @@ function loop() {
         
     }
 
+    //dessine la limite du monde
+    if (playerChunk <= renderDistance) {
+        for (var i = -borderFrameCounter * 3 - canvas.height * 5; i < canvas.height + playerY; i += BLOCKSIZE) {
+            context.drawImage(forcefield, -BLOCKSIZE - cameraX, i - cameraY, BLOCKSIZE, BLOCKSIZE);
+        }
+    }
+    
     //dessine les blocs de portail
     if (isAPortal) {
         context.drawImage(portalAnimationFrames[animationFrameCounter], portalPose[0] - cameraX, portalPose[1] - BLOCKSIZE - cameraY, BLOCKSIZE, BLOCKSIZE);
@@ -495,7 +507,7 @@ function loop() {
     //compte les image de l'animation du portail
     if (animationFrameCounterSlower === 2) {
         animationFrameCounterSlower = 0;
-
+        borderFrameCounter++;
         if(animationFrameCounter === 31) {
             animationFrameCounter = 0;
         } else {
