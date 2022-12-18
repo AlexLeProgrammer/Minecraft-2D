@@ -3,7 +3,7 @@
 var canvas = document.getElementById('game');
 var context = canvas.getContext('2d');
 
-// constantes
+//constantes
 const BLOCKSIZE = 50;
 const GRAVITY_FORCE = 0.5;
 const JUMP_FORCE = 9.5;
@@ -17,8 +17,10 @@ const ZOMBIE_HEIGHT = 100;
 const ZOMBIE_FOLLOW_DISTANCE = 600;
 
 //variables
+//variables du joueur
 var playerX = 100;
 var playerY = 0;
+var playerLife = 10;
 
 //variables des inputs
 var isRightPressed = false;
@@ -118,7 +120,7 @@ fireAnimationFrames[29].src = 'sprites/blocks/fire_animation_frames/fire_ (30).p
 fireAnimationFrames[30].src = 'sprites/blocks/fire_animation_frames/fire_ (31).png';
 fireAnimationFrames[31].src = 'sprites/blocks/fire_animation_frames/fire_ (32).png';
 
-// textures des blocs
+//textures des blocs
 var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image()];
 blockTextures[0].src = 'sprites/blocks/oak_plank.png';
 blockTextures[1].src = 'sprites/blocks/grass.png';
@@ -142,7 +144,7 @@ var mouseScreenPosY = 0;
 var mouseWorldPosX = 0;
 var mouseWorldPosY = 0;
 
-// generation procedurale
+//generation procedurale
 var proceduralDetail = 3;
 var proceduralSize = 500;
 var proceduralHeight = 300;
@@ -171,7 +173,15 @@ var borderFrameCounter = 0;
 const GUI_SIZE = 50;
 var inventoryOpen = false;
 var inventorySprite = new Image();
-inventorySprite.src = "sprites/gui/inventory.png"
+inventorySprite.src = 'sprites/gui/inventory.png';
+var fullHeartSprite = new Image();
+fullHeartSprite.src = 'sprites/gui/full_heart.png';
+var emptyHeartSprite = new Image();
+emptyHeartSprite.src = 'sprites/gui/empty_heart.png';
+var halfHeartSprite = new Image();
+halfHeartSprite.src = 'sprites/gui/half_heart.png';
+
+
 // hotbar
 var hotbarContent = [0, 1, 2, 3, 4, 5, 1, 0, 6];
 var inventoryContent = [6, 3, 0, 3, 1, 5, 4, 0, 1,
@@ -397,7 +407,7 @@ function loop() {
     context.strokeSytle = "black";
     context.lineWidth = 3;
     context.strokeRect(blockX - cameraX, blockY - cameraY, 50, 50);
-   
+    
     // dessine la hotbar
     var hotbarCellSize = GUI_SIZE;
     var hotbarHeight = 20;
@@ -414,17 +424,40 @@ function loop() {
     // selecteur
     context.drawImage(hotbarSelectorSprite, hotbarStartX + usedHotbarID * hotbarCellSize,
     canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
+        
+    // dessine les coeurs
+    var heartSize = GUI_SIZE / 2;
+    var heartHeight = 80;
+    for (var heartIndex = 0; heartIndex < playerLife; heartIndex ++) {
+        context.drawImage(fullHeartSprite, hotbarStartX + heartIndex * heartSize,
+        canvas.height - heartSize - heartHeight, heartSize, heartSize);
+        if (playerLife / 0.5 % 2 != 0 && (heartIndex === playerLife - 1 || heartIndex === playerLife - 0.5)) {
+            context.drawImage(halfHeartSprite, hotbarStartX + heartIndex * heartSize,
+            canvas.height - heartSize - heartHeight, heartSize, heartSize);
+        }
+        if (playerLife < 10 && (heartIndex === playerLife - 1 || heartIndex === playerLife - 0.5)) {
+            for (var heartIndex = playerLife; heartIndex < 10; heartIndex ++) {
+                if (playerLife / 0.5 % 2 != 0 && heartIndex === playerLife) {
+                    heartIndex += 0.5;
+                }
+                if (heartIndex != 10) {
+                    context.drawImage(emptyHeartSprite, hotbarStartX + heartIndex * heartSize,
+                    canvas.height - heartSize - heartHeight, heartSize, heartSize);
+                }
+            }
+        }
+    }
 
     // dessine l'inventaire
     var inventorySizeX = GUI_SIZE * 10
     var inventorySizeY = 166 * inventorySizeX / 176;
     if (inventoryOpen) {
         context.drawImage(
-            inventorySprite,
-            canvas.width / 2 - inventorySizeX / 2,
-            canvas.height / 2 - inventorySizeY / 2,
-            inventorySizeX,
-            inventorySizeY
+        inventorySprite,
+        canvas.width / 2 - inventorySizeX / 2,
+        canvas.height / 2 - inventorySizeY / 2,
+        inventorySizeX,
+        inventorySizeY
         );
         // content
         for (var y = 0; y < 3; y++) {
@@ -504,7 +537,7 @@ function loop() {
         }
     }
 
-    //compte les image de l'animation du portail
+    //compte les image de l'animation des animations
     if (animationFrameCounterSlower === 2) {
         animationFrameCounterSlower = 0;
         borderFrameCounter++;
