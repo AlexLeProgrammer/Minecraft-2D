@@ -18,9 +18,10 @@ const ZOMBIE_FOLLOW_DISTANCE = 600;
 
 //variables
 //variables du joueur
-var playerX = 100;
+var playerX = 125;
 var playerY = 0;
 var playerLife = 10;
+var fireTime = 0;
 
 //variables des inputs
 var isRightPressed = false;
@@ -128,7 +129,7 @@ blockTextures[2].src = 'sprites/blocks/dirt.png';
 blockTextures[3].src = 'sprites/blocks/obsidian.png';
 blockTextures[4].src = 'sprites/blocks/sand.png';
 blockTextures[5].src = 'sprites/blocks/stone.png';
-blockTextures[6].src = 'sprites/Items/flint_and_steel.png';
+blockTextures[6].src = 'sprites/items/flint_and_steel.png';
 
 //variables des blocs
 var modifiedChunks = [];
@@ -160,9 +161,6 @@ var isZombieBlockedOnSide = false;
 //portail du nether
 var portalPose = [];
 var isAPortal = false;
-
-//feux
-var isAFire = 0;
 
 //animation
 var animationFrameCounter = 0;
@@ -229,7 +227,8 @@ function getYProcedural(x) {
     return superflat ? 0 : (result * proceduralHeight);
 }
 
-playerY = parseInt(getYProcedural(0) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE;
+playerY = parseInt(getYProcedural(125) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE;
+
 function getChunkBlocks(x) {
     var result = [];
     // ce chunk a-t-il des modifications
@@ -285,6 +284,10 @@ function loop() {
     // vertical
     // sol
     if (isABloc(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity) && playerYVelocity >= 0 && !isASpecificBlock(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity, 6)) {
+        if (playerYVelocity > 32) {
+            playerLife -= (playerYVelocity - 32) / 5;
+            playerLife -= playerLife % 0.5;
+        } 
         playerYVelocity = 0;
     }else {
         playerYVelocity += GRAVITY_FORCE;
@@ -349,6 +352,19 @@ function loop() {
         }
     }
     
+    //#endregion
+    
+    //#region DEGATS
+    //degats du feux
+    if (isASpecificBlock(playerX, playerY + PLAYER_HEIGHT / 2, 6) && fireTime === 0) {
+        fireTime = 299;
+    }
+    if (fireTime > 0) {
+        if (fireTime % 100 === 0) {
+            playerLife -= 1.5;
+        }
+        fireTime--;
+    }
     //#endregion
 
     //#region AFFICHAGE
