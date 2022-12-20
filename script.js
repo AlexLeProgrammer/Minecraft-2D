@@ -129,7 +129,7 @@ blockTextures[2].src = 'sprites/blocks/dirt.png';
 blockTextures[3].src = 'sprites/blocks/obsidian.png';
 blockTextures[4].src = 'sprites/blocks/sand.png';
 blockTextures[5].src = 'sprites/blocks/stone.png';
-blockTextures[6].src = 'sprites/items/flint_and_steel.png';
+blockTextures[6].src = 'sprites/Items/flint_and_steel.png';
 
 //variables des blocs
 var modifiedChunks = [];
