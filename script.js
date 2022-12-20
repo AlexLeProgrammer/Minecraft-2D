@@ -284,8 +284,8 @@ function loop() {
     // vertical
     // sol
     if (isABloc(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity) && playerYVelocity >= 0 && !isASpecificBlock(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity, 6)) {
-        if (playerYVelocity > 32) {
-            playerLife -= (playerYVelocity - 32) / 5;
+        if (playerYVelocity > 13) {
+            playerLife -= (playerYVelocity - 13) / 2;
             playerLife -= playerLife % 0.5;
         } 
         playerYVelocity = 0;
