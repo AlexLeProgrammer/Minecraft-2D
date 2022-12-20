@@ -129,12 +129,19 @@ inventorySprite.src = "sprites/UI/inventory.png"
 var inventory = {
     opened: false,
     content: [
-        0, 1, 2, 3, 4, 5, 1, 0, 6,
-        6, 3, 0, 3, 1, 5, 4, 0, 1,
-        2, 1, 3, 3, 1, 5, 6, 0, 1,
-        2, 3, 0, 0, 1, 5, 4, 5, 1,
+        4, 1, 3, 3, 3, 5, 3, 0, 6,
+        6, 0, 0, 0, 3, 5, 3, 0, 1,
+        2, 1, 3, 3, 3, 3, 3, 0, 1,
+        2, 0, 3, 0, 3, 5, 4, 5, 1,
     ],
     inMouse: null,
+}
+
+for (var i = 0; i < inventory.content.length; i++) {
+    inventory.content[i] = parseInt(Math.random() * blockTextures.length + 1) - 1;
+    if(Math.random() >= 0.75) {
+        inventory.content[i] = null;
+    }
 }
 
 
