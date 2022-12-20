@@ -139,7 +139,7 @@ var inventory = {
 
 for (var i = 0; i < inventory.content.length; i++) {
     inventory.content[i] = parseInt(Math.random() * blockTextures.length + 1) - 1;
-    if(Math.random() >= 0.75) {
+    if(Math.random() >= 0.85) {
         inventory.content[i] = null;
     }
 }
