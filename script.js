@@ -127,7 +127,7 @@ var inventorySprite = new Image();
 inventorySprite.src = "sprites/UI/inventory.png"
 // inventaire
 var inventory = {
-    opened: true,
+    opened: false,
     content: [
         0, 1, 2, 3, 4, 5, 1, 0, 6,
         6, 3, 0, 3, 1, 5, 4, 0, 1,
@@ -384,10 +384,10 @@ function loop() {
 
     //#region INVENTAIRE
     if (inventory.opened) {
-        var cellX = parseInt((mouseScreenPosX - canvas.width / 2 + GUI_SIZE * 4.6) / GUI_SIZE);
-        var cellY = parseInt((mouseScreenPosY - canvas.height / 2) / GUI_SIZE);
+        var cellX = parseInt((mouseScreenPosX - canvas.width / 2 + GUI_SIZE * 4.6) / GUI_SIZE) - ((mouseScreenPosX - canvas.width / 2 + GUI_SIZE * 4.6) < 0 ? 1 : 0);
+        var cellY = parseInt((mouseScreenPosY - canvas.height / 2) / GUI_SIZE) - ((mouseScreenPosY - canvas.height / 2) < 0 ? 1 : 0);
         var cellI = cellX + (3 - cellY) * 9;
-        if (isClicked) {
+        if (isClicked && cellX >= 0 && cellX <= 8 && cellY >= 0 && cellY <= 3) {
             var wasInMouse = inventory.inMouse;
             inventory.inMouse = inventory.content[cellI];
             inventory.content[cellI] = wasInMouse;
