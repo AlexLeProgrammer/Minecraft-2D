@@ -18,7 +18,7 @@ const ZOMBIE_FOLLOW_DISTANCE = 600;
 
 //variables
 //variables du joueur
-var playerX = 125;
+var playerX = 525;
 var playerY = 0;
 var playerLife = 10;
 var fireTime = 0;
@@ -122,7 +122,7 @@ fireAnimationFrames[30].src = 'sprites/blocks/fire_animation_frames/fire_ (31).p
 fireAnimationFrames[31].src = 'sprites/blocks/fire_animation_frames/fire_ (32).png';
 
 //textures des blocs
-var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image()];
+var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image()];
 blockTextures[0].src = 'sprites/blocks/oak_plank.png';
 blockTextures[1].src = 'sprites/blocks/grass.png';
 blockTextures[2].src = 'sprites/blocks/dirt.png';
@@ -130,6 +130,9 @@ blockTextures[3].src = 'sprites/blocks/obsidian.png';
 blockTextures[4].src = 'sprites/blocks/sand.png';
 blockTextures[5].src = 'sprites/blocks/stone.png';
 blockTextures[6].src = 'sprites/Items/flint_and_steel.png';
+blockTextures[7].src = 'sprites/blocks/oak_log.png';
+blockTextures[8].src = 'sprites/blocks/oak_leaves.png';
+blockTextures[9].src = 'sprites/blocks/netherrack.png';
 
 //variables des blocs
 var modifiedChunks = [];
@@ -181,17 +184,14 @@ halfHeartSprite.src = 'sprites/gui/half_heart.png';
 
 
 // hotbar
-var hotbarContent = [0, 1, 2, 3, 4, 5, 1, 0, 6];
+var hotbarContent = [0, 1, 2, 3, 4, 5, 7, 9, 6];
 var inventoryContent = [6, 3, 0, 3, 1, 5, 4, 0, 1,
                         2, 1, 3, 3, 1, 5, 6, 0, 1,
                         2, 3, 0, 0, 1, 5, 4, 5, 1,]
 
-
-noise.seed(Math.random());
-//permet de generer un nombre aleatoire
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
-}
+//recuperation de la seed
+var proceduraleSeed = Math.random();
+noise.seed(proceduraleSeed);
 
 //detecte si il y a un bloc a des coordonnees precises
 function isABloc(x, y) {
@@ -227,7 +227,16 @@ function getYProcedural(x) {
     return superflat ? 0 : (result * proceduralHeight);
 }
 
-playerY = parseInt(getYProcedural(125) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE;
+function getXwithSeed(x) {
+    var result = 0;
+    if (x > 10) {
+        x /= 10;
+    }
+    result = parseInt((proceduraleSeed * 100 / (x + 1)) % 16);
+    return result;
+}
+
+playerY = parseInt(getYProcedural(525) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE;
 
 function getChunkBlocks(x) {
     var result = [];
@@ -252,14 +261,108 @@ function getChunkBlocks(x) {
                 1
             ]);
             // terre
-            for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <= 1000; yPos += BLOCKSIZE) {
+            for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <= 20 * BLOCKSIZE; yPos += BLOCKSIZE) {
                 result.push([
                     x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
                     yPos,
                     2
                 ]);
             }
+            // pierre
+            for (var yPos = parseInt(getYProcedural((x + 16) * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * 10; yPos <= 80 * BLOCKSIZE; yPos += BLOCKSIZE) {
+                result.push([
+                    x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
+                    yPos,
+                    5
+                ]);
+            }         
         }
+        // arbre
+        //tronc
+        result.push([
+            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
+            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE,
+            7
+        ]);
+        result.push([
+            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
+            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 2,
+            7
+        ]); 
+        result.push([
+            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
+            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+            7
+        ]);
+        result.push([
+            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
+            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+            7
+        ]);
+        result.push([
+            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
+            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
+            8
+        ]);
+        result.push([
+            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
+            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 6,
+            8
+        ]);
+        //tronc + 1 a gauche
+        result.push([
+            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE,
+            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+            8
+        ]);
+        result.push([
+            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE,
+            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+            8
+        ]);
+        result.push([
+            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE,
+            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
+            8
+        ]);
+        //tronc + 2 a gauche
+        result.push([
+            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE * 2,
+            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+            8
+        ]);
+        result.push([
+            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE * 2,
+            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+            8
+        ]);
+        //tronc + 1 a droite
+        result.push([
+            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE,
+            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+            8
+        ]);
+        result.push([
+            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE,
+            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+            8
+        ]);
+        result.push([
+            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE,
+            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
+            8
+        ]);
+        //tronc + 2 a droite
+        result.push([
+            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE * 2,
+            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+            8
+        ]);
+        result.push([
+            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE * 2,
+            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+            8
+        ]);
     }
     return result;
 }
@@ -525,7 +628,7 @@ function loop() {
         }
         // poser
         if ((isABloc(blockX, blockY + BLOCKSIZE) && !isASpecificBlock(blockX, blockY + BLOCKSIZE, 6)) || (isABloc(blockX + BLOCKSIZE, blockY) && !isASpecificBlock(blockX + BLOCKSIZE, blockY)) || canPlaceAir) {
-            if (chunkIndex == modifiedChunks.length) {
+            if (chunkIndex === modifiedChunks.length) {
                 modifiedChunks.push([]);
             }
             var newBlock = [blockX, blockY, hotbarContent[usedHotbarID], 0];
