@@ -541,16 +541,16 @@ function loop() {
     }
 
     //compte les image de l'animation du portail
-    if (portalFrameCounterSlower === 2) {
-        portalFrameCounterSlower = 0;
+    if (animationFrameCounterSlower === 2) {
+        animationFrameCounterSlower = 0;
 
-        if(portalFrameCounter === 31) {
-            portalFrameCounter = 0;
+        if(animationFrameCounter === 31) {
+            animationFrameCounter = 0;
         } else {
-            portalFrameCounter++;
+            animationFrameCounter++;
         }
     } else {
-        portalFrameCounterSlower++;
+        animationFrameCounterSlower++;
     }
     //#endregion
     }
