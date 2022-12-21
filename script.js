@@ -460,7 +460,7 @@ function loop() {
     zombieY += zombieYVelocity;
     
     //portail
-    if(isClicked && hotbarContent[usedHotbarID] === 6) {
+    if(isClicked && inventory.content[usedHotbarID] === 6) {
         if (isASpecificBlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE, 3) &&
         isASpecificBlock(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 2, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 3, 3) &&
         isASpecificBlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 4, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 + BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 4, 3) &&
