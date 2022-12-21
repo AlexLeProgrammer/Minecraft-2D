@@ -33,6 +33,7 @@ var isRightClicked = false;
 var playerYVelocity = 0;
 var renderDistance = 2;
 
+//#region TEXTURES
 //variables des images
 var playerSprite = new Image();
 playerSprite.src = 'sprites/player.png';
@@ -130,9 +131,13 @@ blockTextures[3].src = 'sprites/blocks/obsidian.png';
 blockTextures[4].src = 'sprites/blocks/sand.png';
 blockTextures[5].src = 'sprites/blocks/stone.png';
 blockTextures[6].src = 'sprites/Items/flint_and_steel.png';
+
+//#endregion
+
 blockTextures[7].src = 'sprites/blocks/oak_log.png';
 blockTextures[8].src = 'sprites/blocks/oak_leaves.png';
 blockTextures[9].src = 'sprites/blocks/netherrack.png';
+
 
 //variables des blocs
 var modifiedChunks = [];
@@ -172,7 +177,6 @@ var borderFrameCounter = 0;
 
 // gui
 const GUI_SIZE = 50;
-var inventoryOpen = false;
 var inventorySprite = new Image();
 inventorySprite.src = 'sprites/gui/inventory.png';
 var fullHeartSprite = new Image();
@@ -182,12 +186,24 @@ emptyHeartSprite.src = 'sprites/gui/empty_heart.png';
 var halfHeartSprite = new Image();
 halfHeartSprite.src = 'sprites/gui/half_heart.png';
 
+// inventaire
+var inventory = {
+    opened: false,
+    content: [
+        4, 1, 3, 3, 3, 5, 3, 0, 6,
+        6, 0, 0, 0, 3, 5, 3, 0, 1,
+        2, 1, 3, 3, 3, 3, 3, 0, 1,
+        2, 0, 3, 0, 3, 5, 4, 5, 1,
+    ],
+    inMouse: null,
+}
 
-// hotbar
-var hotbarContent = [0, 1, 2, 3, 4, 5, 7, 9, 6];
-var inventoryContent = [6, 3, 0, 3, 1, 5, 4, 0, 1,
-                        2, 1, 3, 3, 1, 5, 6, 0, 1,
-                        2, 3, 0, 0, 1, 5, 4, 5, 1,]
+for (var i = 0; i < inventory.content.length; i++) {
+    inventory.content[i] = parseInt(Math.random() * blockTextures.length + 1) - 1;
+    if(Math.random() >= 0.85) {
+        inventory.content[i] = null;
+    }
+}
 
 //recuperation de la seed
 var proceduraleSeed = Math.random();
@@ -383,6 +399,7 @@ function loop() {
     cameraX += (playerX - canvas.width / 2 - cameraX) / 30;
     cameraY += (playerY - canvas.height / 2 - cameraY) / 30;
     
+    if (!inventory.opened) {
     //#region PHISIQUES
     // vertical
     // sol
@@ -470,6 +487,87 @@ function loop() {
     }
     //#endregion
 
+    //#region POSER/CASSER
+    // trouve le bon chunk
+    var chunk = parseInt(parseInt(blockX / BLOCKSIZE) / 16) - (blockX < 0 ? 1 : 0);
+    var chunkIndex = modifiedChunks.length;
+    for (var i = 0; i < modifiedChunks.length; i++) {
+        if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) == chunk) {
+            chunkIndex = i;
+        }
+    }
+    //poser bloc
+    if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && usedHotbarID != 8) {
+        // si le chunk n'etait pas modifié creer le terrain
+        if (modifiedChunks[chunkIndex] == null) {
+            var terrain = [];
+            for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
+                terrain.push(getChunkBlocks(chunkIndex)[i]);
+            }
+            modifiedChunks.push([]);
+            for (var i = 0; i < terrain.length; i++) {
+                modifiedChunks[modifiedChunks.length - 1].push(terrain[i]);
+            }
+        }
+        // poser
+        if (isABloc(blockX, blockY + BLOCKSIZE * 1.5) || isABloc(blockX, blockY - BLOCKSIZE * 1.5) || isABloc(blockX + BLOCKSIZE * 1.5, blockY) || isABloc(blockX - BLOCKSIZE * 1.5, blockY) ||
+        mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
+            if (chunkIndex == modifiedChunks.length) {
+                modifiedChunks.push([]);
+            }
+            var newBlock = [blockX, blockY, inventory.content[usedHotbarID]];
+            modifiedChunks[chunkIndex].push(newBlock);
+        }
+    }
+    
+    //casser bloc
+    if (isRightClicked) {
+        // si le chunk n'etait pas modifié creer le terrain
+        if (modifiedChunks[chunkIndex] == null) {
+            var terrain = [];
+            for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
+                terrain.push(getChunkBlocks(chunkIndex)[i]);
+            }
+            modifiedChunks.push([]);
+            for (var i = 0; i < terrain.length; i++) {
+                modifiedChunks[modifiedChunks.length - 1].push(terrain[i]);
+            }
+        }
+        for (var i = 0; i < modifiedChunks[chunkIndex].length; i++) {
+            if (blockX == modifiedChunks[chunkIndex][i][0] && blockY == modifiedChunks[chunkIndex][i][1]) {
+                modifiedChunks[chunkIndex].splice(i, 1);
+            }
+        }
+    }
+
+    //compte les image de l'animation du portail
+    if (portalFrameCounterSlower === 2) {
+        portalFrameCounterSlower = 0;
+
+        if(portalFrameCounter === 31) {
+            portalFrameCounter = 0;
+        } else {
+            portalFrameCounter++;
+        }
+    } else {
+        portalFrameCounterSlower++;
+    }
+    //#endregion
+    }
+
+    //#region INVENTAIRE
+    if (inventory.opened) {
+        var cellX = parseInt((mouseScreenPosX - canvas.width / 2 + GUI_SIZE * 4.6) / GUI_SIZE) - ((mouseScreenPosX - canvas.width / 2 + GUI_SIZE * 4.6) < 0 ? 1 : 0);
+        var cellY = parseInt((mouseScreenPosY - canvas.height / 2) / GUI_SIZE) - ((mouseScreenPosY - canvas.height / 2) < 0 ? 1 : 0);
+        var cellI = cellX + (3 - cellY) * 9;
+        if (isClicked && cellX >= 0 && cellX <= 8 && cellY >= 0 && cellY <= 3) {
+            var wasInMouse = inventory.inMouse;
+            inventory.inMouse = inventory.content[cellI];
+            inventory.content[cellI] = wasInMouse;
+        }
+    }
+    //#endregion
+
     //#region AFFICHAGE
     // clear le canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -537,8 +635,10 @@ function loop() {
         context.drawImage(hotbarCellSprite, hotbarStartX + cellIndex * hotbarCellSize,
         canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
         // item
-        context.drawImage(blockTextures[hotbarContent[cellIndex]], hotbarStartX + cellIndex * hotbarCellSize + itemsMargin,
-        canvas.height - hotbarCellSize - hotbarHeight + itemsMargin, hotbarCellSize - 2 * itemsMargin, hotbarCellSize - 2 * itemsMargin);
+        if(inventory.content[cellIndex] != null) {
+            context.drawImage(blockTextures[inventory.content[cellIndex]], hotbarStartX + cellIndex * hotbarCellSize + itemsMargin,
+            canvas.height - hotbarCellSize - hotbarHeight + itemsMargin, hotbarCellSize - 2 * itemsMargin, hotbarCellSize - 2 * itemsMargin);
+        }
     }
     // selecteur
     context.drawImage(hotbarSelectorSprite, hotbarStartX + usedHotbarID * hotbarCellSize,
@@ -570,7 +670,7 @@ function loop() {
     // dessine l'inventaire
     var inventorySizeX = GUI_SIZE * 10
     var inventorySizeY = 166 * inventorySizeX / 176;
-    if (inventoryOpen) {
+    if (inventory.opened) {
         context.drawImage(
         inventorySprite,
         canvas.width / 2 - inventorySizeX / 2,
@@ -581,97 +681,42 @@ function loop() {
         // content
         for (var y = 0; y < 3; y++) {
             for (var x = 0; x < 9; x++) {
+                if(inventory.content[x + (y + 1) * 9] != null) {
+                    context.drawImage(
+                        blockTextures[inventory.content[x + (y + 1) * 9]],
+                        canvas.width / 2 - inventorySizeX / 2 + GUI_SIZE * 0.55 + GUI_SIZE * x * 1.02,
+                        canvas.height / 2 + inventorySizeY / 2 - GUI_SIZE * 2.55 - GUI_SIZE * y,
+                        GUI_SIZE * 0.75,
+                        GUI_SIZE * 0.75
+                        );
+                }
+            }
+        }
+        // hotbar
+        for (var i = 0; i < 9; i++) {
+            if(inventory.content[i] != null) {
                 context.drawImage(
-                    blockTextures[inventoryContent[x + y * 9]],
-                    canvas.width / 2 - inventorySizeX / 2 + GUI_SIZE * 0.55 + GUI_SIZE * x * 1.02,
-                    canvas.height / 2 + inventorySizeY / 2 - GUI_SIZE * 2.55 - GUI_SIZE * y,
+                    blockTextures[inventory.content[i]],
+                    canvas.width / 2 - inventorySizeX / 2 + GUI_SIZE * 0.55 + GUI_SIZE * i * 1.02,
+                    canvas.height / 2 + inventorySizeY / 2 - GUI_SIZE * 1.3,
                     GUI_SIZE * 0.75,
                     GUI_SIZE * 0.75
                     );
             }
         }
-        // hotbar
-        for (var i = 0; i < 9; i++) {
+        // in mouse
+        if (inventory.inMouse != null) {
             context.drawImage(
-                blockTextures[hotbarContent[i]],
-                canvas.width / 2 - inventorySizeX / 2 + GUI_SIZE * 0.55 + GUI_SIZE * i * 1.02,
-                canvas.height / 2 + inventorySizeY / 2 - GUI_SIZE * 1.3,
+                blockTextures[inventory.inMouse],
+                mouseScreenPosX - GUI_SIZE * 0.75 / 2,
+                mouseScreenPosY - GUI_SIZE * 0.75 / 2,
                 GUI_SIZE * 0.75,
                 GUI_SIZE * 0.75
                 );
         }
     }
-
     //#endregion
 
-    //#region POSER/CASSER
-    // trouve le bon chunk
-    var chunk = parseInt(parseInt(blockX / BLOCKSIZE) / 16) - (blockX < 0 ? 1 : 0);
-    var chunkIndex = modifiedChunks.length;
-    for (var i = 0; i < modifiedChunks.length; i++) {
-        if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) == chunk) {
-            chunkIndex = i;
-        }
-    }
-    //poser bloc
-    if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2)) {
-        // si le chunk n'etait pas modifié creer le terrain
-        if (modifiedChunks[chunkIndex] == null) {
-            var terrain = [];
-            for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
-                terrain.push(getChunkBlocks(chunkIndex)[i]);
-            }
-            modifiedChunks.push([]);
-            for (var i = 0; i < terrain.length; i++) {
-                modifiedChunks[modifiedChunks.length - 1].push(terrain[i]);
-            }
-        }
-        // poser
-        if ((isABloc(blockX, blockY + BLOCKSIZE) && !isASpecificBlock(blockX, blockY + BLOCKSIZE, 6)) || (isABloc(blockX + BLOCKSIZE, blockY) && !isASpecificBlock(blockX + BLOCKSIZE, blockY)) || canPlaceAir) {
-            if (chunkIndex === modifiedChunks.length) {
-                modifiedChunks.push([]);
-            }
-            var newBlock = [blockX, blockY, hotbarContent[usedHotbarID], 0];
-            modifiedChunks[chunkIndex].push(newBlock);
-        }
-    }
-    
-    //casser bloc
-    if (isRightClicked) {
-        // si le chunk n'etait pas modifié creer le terrain
-        if (modifiedChunks[chunkIndex] == null) {
-            var terrain = [];
-            for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
-                terrain.push(getChunkBlocks(chunkIndex)[i]);
-            }
-            modifiedChunks.push([]);
-            for (var i = 0; i < terrain.length; i++) {
-                modifiedChunks[modifiedChunks.length - 1].push(terrain[i]);
-            }
-        }
-        for (var i = 0; i < modifiedChunks[chunkIndex].length; i++) {
-            if (blockX == modifiedChunks[chunkIndex][i][0] && blockY == modifiedChunks[chunkIndex][i][1]) {
-                modifiedChunks[chunkIndex].splice(i, 1);
-            }
-        }
-    }
-
-    //compte les image de l'animation des animations
-    if (animationFrameCounterSlower === 2) {
-        animationFrameCounterSlower = 0;
-        borderFrameCounter++;
-        if(animationFrameCounter === 31) {
-            animationFrameCounter = 0;
-        } else {
-            animationFrameCounter++;
-        }
-    } else {
-        animationFrameCounterSlower++;
-    }
-    //#endregion
-
-    //#region INVENTAIRE
-    //#endregion
     isClicked = false;
     isRightClicked = false;
     isZombieBlockedOnSide = false;
@@ -720,7 +765,7 @@ document.addEventListener('keydown', function(e) {
     }
     // enventaire (e)
     if (e.which === 69) {
-        inventoryOpen = !inventoryOpen;
+        inventory.opened = !inventory.opened;
     }
 });
 document.addEventListener('keyup', function(e) {
