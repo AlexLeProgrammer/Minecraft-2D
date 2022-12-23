@@ -556,7 +556,7 @@ function loop() {
 
     //poser bloc
     if (isInNether === false) {
-        if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && usedHotbarID != 8) {
+        if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2)) {
             // si le chunk n'etait pas modifié creer le terrain
             if (modifiedChunks[chunkIndex] == null) {
                 var terrain = [];
@@ -581,7 +581,7 @@ function loop() {
             }
         }
     } else {
-        if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && usedHotbarID != 8) {
+        if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2)) {
             // si le chunk n'etait pas modifié creer le terrain
             if (netherModifiedChunks[netherChunkIndex] == null) {
                 var terrain = [];
