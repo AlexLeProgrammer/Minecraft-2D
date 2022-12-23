@@ -186,10 +186,10 @@ var worldDatas = {
     // terrain
     modifiedChunks: [],
     //recuperation de la seed
-    proceduraleSeed: Math.random(),
+    proceduraleSeed: 0,
     //nether
     netherModifiedChunks: [],
-    proceduraleNetherSeed: Math.random(),
+    proceduraleNetherSeed: 0,
     isInNether: false,
     // inventaire
     inventory: {
@@ -210,12 +210,16 @@ noise.seed(worldDatas.proceduraleSeed);
 if (localStorage.getItem("datas") != null) {
     worldDatas = JSON.parse(localStorage.getItem("datas"));
 } else {
+    // si il n'y a pas de donnees enregistre generer
     for (var i = 0; i < worldDatas.inventory.content.length; i++) {
         worldDatas.inventory.content[i] = parseInt(Math.random() * (blockTextures.length - 1) + 1) - 1;
         if(Math.random() >= 0.85) {
             worldDatas.inventory.content[i] = null;
         }
     }
+    // genere la graine
+    worldDatas.proceduraleSeed = Math.random();
+    worldDatas.proceduraleNetherSeed = Math.random();
 }
 //#endregion
 
