@@ -253,8 +253,10 @@ function getXwithSeed(x) {
     var result = 0;
     if (x > 10) {
         x /= 10;
+    } else if (x > 100) {
+        x /= 100;
     }
-    result = parseInt((proceduraleSeed * 100 / (x + 1)) % 16);
+    result = parseInt((proceduraleSeed * 100 / (x + 1)) % 12);
     return result;
 }
 
@@ -325,88 +327,95 @@ function getChunkBlocks(x) {
             // arbre
             //tronc
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE,
                 7
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 2,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 2,
                 7
             ]); 
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
                 7
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
                 7
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
                 8
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 6,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 6,
                 8
             ]);
             //tronc + 1 a gauche
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE - BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
                 8
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE - BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
                 8
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE - BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
                 8
             ]);
             //tronc + 2 a gauche
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE * 2,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE - BLOCKSIZE * 2,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
                 8
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE * 2,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE - BLOCKSIZE * 2,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
                 8
             ]);
             //tronc + 1 a droite
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE + BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
                 8
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE + BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
                 8
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE + BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
                 8
             ]);
             //tronc + 2 a droite
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE * 2,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE + BLOCKSIZE * 2,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
                 8
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE * 2,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE + BLOCKSIZE * 2,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
                 8
+            ]);
+        } else {
+            // feu
+            result.push([
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE,
+                6
             ]);
         }
     }
