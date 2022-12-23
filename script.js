@@ -220,7 +220,7 @@ if (localStorage.getItem("datas") != null) {
 //#endregion
 
 //detecte si il y a un bloc a des coordonnees precises
-function isABloc(x, y) {
+function isABlock(x, y) {
     var chunk = parseInt(parseInt(x / BLOCKSIZE) / 16) - (x < 0 ? 1 : 0);
     var chunkBlocks = getChunkBlocks(chunk);
     var result = false;
@@ -257,9 +257,11 @@ function getXwithSeed(x) {
     var result = 0;
     if (x > 10) {
         x /= 10;
+    } else if (x > 100) {
+        x /= 100;
     }
-    result = parseInt((worldDatas
-        .proceduraleSeed * 100 / (x + 1)) % 16);
+    result = parseInt((proceduraleSeed * 100 / (x + 1)) % 12);
+
     return result;
 }
 
@@ -330,88 +332,95 @@ function getChunkBlocks(x) {
             // arbre
             //tronc
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE,
                 7
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 2,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 2,
                 7
             ]); 
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
                 7
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
                 7
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
                 8
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 6,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 6,
                 8
             ]);
             //tronc + 1 a gauche
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE - BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
                 8
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE - BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
                 8
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE - BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
                 8
             ]);
             //tronc + 2 a gauche
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE * 2,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE - BLOCKSIZE * 2,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
                 8
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE * 2,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE - BLOCKSIZE * 2,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
                 8
             ]);
             //tronc + 1 a droite
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE + BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
                 8
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE + BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
                 8
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE + BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
                 8
             ]);
             //tronc + 2 a droite
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE * 2,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE + BLOCKSIZE * 2,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
                 8
             ]);
             result.push([
-                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE * 2,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE + BLOCKSIZE * 2,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
                 8
+            ]);
+        } else {
+            // feu
+            result.push([
+                x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE,
+                6
             ]);
         }
     }
@@ -484,7 +493,7 @@ function loop() {
     }
     
     // sol zombie
-    if (isABloc(zombieX, zombieY + ZOMBIE_HEIGHT + zombieYVelocity) && zombieYVelocity >= 0) {
+    if (isABlock(zombieX, zombieY + ZOMBIE_HEIGHT + zombieYVelocity) && zombieYVelocity >= 0) {
         zombieYVelocity = 0;
         gravityZombie = false;
     }else {
@@ -544,7 +553,7 @@ function loop() {
     //#region POSER/CASSER
     // trouve le bon chunk
     var chunk = parseInt(parseInt(blockX / BLOCKSIZE) / 16) - (blockX < 0 ? 1 : 0);
-    var chunkIndex = worldDatas.netherModifiedChunks.length;
+    var chunkIndex = worldDatas.modifiedChunks.length;
     var netherChunkIndex = worldDatas.netherModifiedChunks.length;
     if (worldDatas.isInNether === false) {
         for (var i = 0; i < worldDatas.modifiedChunks.length; i++) {
@@ -575,8 +584,10 @@ function loop() {
                 }
             }
             // poser
-            if (isABloc(blockX, blockY + BLOCKSIZE * 1.5) || isABloc(blockX, blockY - BLOCKSIZE * 1.5) || isABloc(blockX + BLOCKSIZE * 1.5, blockY) || isABloc(blockX - BLOCKSIZE * 1.5, blockY) ||
-            mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
+            if ((isABlock(blockX, blockY + BLOCKSIZE * 1.5) && !isASpecificBlock(blockX, blockY + BLOCKSIZE * 1.5, 6)) ||
+            (isABlock(blockX, blockY - BLOCKSIZE * 1.5) && !isASpecificBlock(blockX, blockY - BLOCKSIZE * 1.5, 6)) ||
+            (isABlock(blockX + BLOCKSIZE * 1.5, blockY) && !isASpecificBlock(blockX + BLOCKSIZE * 1.5, blockY, 6)) ||
+            (isABlock(blockX - BLOCKSIZE * 1.5, blockY) && !isASpecificBlock(blockX - BLOCKSIZE * 1.5, blockY, 6)) || canPlaceAir) {
                 if (chunkIndex == worldDatas.modifiedChunks.length) {
                     worldDatas.modifiedChunks.push([]);
                 }
@@ -585,7 +596,7 @@ function loop() {
             }
         }
     } else {
-        if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && usedHotbarID != 8) {
+        if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2)) {
             // si le chunk n'etait pas modifié creer le terrain
             if (worldDatas.netherModifiedChunks[netherChunkIndex] == null) {
                 var terrain = [];
@@ -598,8 +609,10 @@ function loop() {
                 }
             }
             // poser
-            if (isABloc(blockX, blockY + BLOCKSIZE * 1.5) || isABloc(blockX, blockY - BLOCKSIZE * 1.5) || isABloc(blockX + BLOCKSIZE * 1.5, blockY) || isABloc(blockX - BLOCKSIZE * 1.5, blockY) ||
-            mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
+            if ((isABlock(blockX, blockY + BLOCKSIZE * 1.5) && !isASpecificBlock(blockX, blockY + BLOCKSIZE * 1.5, 6)) ||
+            (isABlock(blockX, blockY - BLOCKSIZE * 1.5) && !isASpecificBlock(blockX, blockY - BLOCKSIZE * 1.5, 6)) ||
+            (isABlock(blockX + BLOCKSIZE * 1.5, blockY) && !isASpecificBlock(blockX + BLOCKSIZE * 1.5, blockY, 6)) ||
+            (isABlock(blockX - BLOCKSIZE * 1.5, blockY) && !isASpecificBlock(blockX - BLOCKSIZE * 1.5, blockY, 6)) || canPlaceAir) {
                 if (netherChunkIndex == worldDatas.netherModifiedChunks.length) {
                     worldDatas.netherModifiedChunks.push([]);
                 }
@@ -782,7 +795,7 @@ function loop() {
         for (var j = 0; j < blocks.length; j++) {
             //gere le sable
             if (blocks[j][2] === 4) {
-                if (isABloc(blocks[j][0] + 1, blocks[j][1] + BLOCKSIZE + 1 + blocks[j][3])) {
+                if (isABlock(blocks[j][0] + 1, blocks[j][1] + BLOCKSIZE + 1 + blocks[j][3])) {
                     blocks[j][3] = 0;
                     blocks[j][0] = parseInt(blocks[j][0] / BLOCKSIZE) * BLOCKSIZE;
                     blocks[j][1] = parseInt(blocks[j][1] / BLOCKSIZE) * BLOCKSIZE;
