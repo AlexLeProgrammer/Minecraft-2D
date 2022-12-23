@@ -17,21 +17,13 @@ const ZOMBIE_HEIGHT = 100;
 const ZOMBIE_FOLLOW_DISTANCE = 600;
 
 //variables
-//variables du joueur
-var playerX = 525;
-var playerY = 0;
-var playerLife = 10;
-var fireTime = 0;
+var renderDistance = 2;
 
 //variables des inputs
 var isRightPressed = false;
 var isLeftPressed = false;
 var isClicked = false;
 var isRightClicked = false;
-
-//mouvement du joueur
-var playerYVelocity = 0;
-var renderDistance = 2;
 
 //#region TEXTURES
 //variables des images
@@ -139,7 +131,6 @@ blockTextures[10].src = 'sprites/blocks/portal_animation_frames/portal_ (1).png'
 //#endregion
 
 //variables des blocs
-var modifiedChunks = [];
 var blockX = 0;
 var blockY = 0;
 var usedHotbarID = 0;
@@ -152,16 +143,10 @@ var mouseScreenPosY = 0;
 var mouseWorldPosX = 0;
 var mouseWorldPosY = 0;
 
-//nether
-var netherModifiedChunks = [];
-var proceduraleNetherSeed = Math.random();
-var isInNether = false;
-
 //generation procedurale
 var proceduralDetail = 3;
 var proceduralSize = 500;
 var proceduralHeight = 300;
-var superflat = false;
 
 //zombie
 var zombieX = 500;
@@ -171,9 +156,7 @@ var gravityZombie = true;
 var isZombieBlockedOnSide = false;
 
 //portail du nether
-var portalPose = [];
 var isANewPortal = false;
-var portalWaitingTime = 0;
 
 //animation
 var animationFrameCounter = 0;
@@ -191,29 +174,50 @@ emptyHeartSprite.src = 'sprites/gui/empty_heart.png';
 var halfHeartSprite = new Image();
 halfHeartSprite.src = 'sprites/gui/half_heart.png';
 
-// inventaire
-var inventory = {
-    opened: false,
-    content: [
-        0, 0, 1, 1, 2, 2, 3, 3, 6,
-        4, 4, 5, 5, 7, 7, 8, 8, 9,
-        9, 0, 0, 1, 1, 2, 2, 3, 3,
-        10, 4, 4, 5, 5, 6, 6, 7, 7,
-    ],
-    inMouse: null,
-}
-
-
-for (var i = 0; i < inventory.content.length; i++) {
-    inventory.content[i] = parseInt(Math.random() * (blockTextures.length - 1) + 1) - 1;
-    if(Math.random() >= 0.85) {
-        inventory.content[i] = null;
+// données du monde
+var worldDatas = {
+    // variables du joueur
+    playerX: 525,
+    playerY: 0,
+    playerLife: 10,
+    fireTime: 0,
+    // mouvement du joueur
+    playerYVelocity: 0,
+    // terrain
+    modifiedChunks: [],
+    //recuperation de la seed
+    proceduraleSeed: Math.random(),
+    //nether
+    netherModifiedChunks: [],
+    proceduraleNetherSeed: Math.random(),
+    isInNether: false,
+    // inventaire
+    inventory: {
+        opened: false,
+        content: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0,
+            4, 4, 5, 5, 7, 7, 8, 8, 0,
+            9, 0, 0, 1, 1, 2, 2, 3, 3,
+            10, 4, 4, 5, 5, 6, 6, 7, 7,
+        ],
+        inMouse: null,
     }
 }
 
-//recuperation de la seed
-var proceduraleSeed = Math.random();
-noise.seed(proceduraleSeed);
+noise.seed(worldDatas.proceduraleSeed);
+
+//#region CHARGEMENT DES DONNEES
+if (localStorage.getItem("datas") != null) {
+    worldDatas = JSON.parse(localStorage.getItem("datas"));
+} else {
+    for (var i = 0; i < worldDatas.inventory.content.length; i++) {
+        worldDatas.inventory.content[i] = parseInt(Math.random() * (blockTextures.length - 1) + 1) - 1;
+        if(Math.random() >= 0.85) {
+            worldDatas.inventory.content[i] = null;
+        }
+    }
+}
+//#endregion
 
 //detecte si il y a un bloc a des coordonnees precises
 function isABlock(x, y) {
@@ -246,7 +250,7 @@ function getYProcedural(x) {
     for (var i = 0; i < proceduralDetail; i++) {
         result += noise.perlin2(x / (proceduralSize / (i + 1)), i * 100) / (i + 1);
     }
-    return superflat ? 0 : (result * proceduralHeight);
+    return result * proceduralHeight;
 }
 
 function getXwithSeed(x) {
@@ -257,30 +261,31 @@ function getXwithSeed(x) {
         x /= 100;
     }
     result = parseInt((proceduraleSeed * 100 / (x + 1)) % 12);
+
     return result;
 }
 
-playerY = parseInt(getYProcedural(525) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE;
+worldDatas.playerY = parseInt(getYProcedural(525) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE;
 
 function getChunkBlocks(x) {
     var result = [];
     // ce chunk a-t-il des modifications
     var isModified = false;
-    if (isInNether === false) {
-        for (var i = 0; i < modifiedChunks.length; i++) {
-            if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) == x) {
+    if (worldDatas.isInNether === false) {
+        for (var i = 0; i < worldDatas.modifiedChunks.length; i++) {
+            if (parseInt(parseInt(worldDatas.modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (worldDatas.modifiedChunks[i][0][0] < 0 ? 1 : 0) == x) {
                 isModified = true;
-                for (var j = 0; j < modifiedChunks[i].length; j++) {
-                    result.push(modifiedChunks[i][j]);
+                for (var j = 0; j < worldDatas.modifiedChunks[i].length; j++) {
+                    result.push(worldDatas.modifiedChunks[i][j]);
                 }
             }
         }
     } else {
-        for (var i = 0; i < netherModifiedChunks.length; i++) {
-            if (parseInt(parseInt(netherModifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (netherModifiedChunks[i][0][0] < 0 ? 1 : 0) == x) {
+        for (var i = 0; i < worldDatas.netherModifiedChunks.length; i++) {
+            if (parseInt(parseInt(worldDatas.netherModifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (worldDatas.netherModifiedChunks[i][0][0] < 0 ? 1 : 0) == x) {
                 isModified = true;
-                for (var j = 0; j < netherModifiedChunks[i].length; j++) {
-                    result.push(netherModifiedChunks[i][j]);
+                for (var j = 0; j < worldDatas.netherModifiedChunks[i].length; j++) {
+                    result.push(worldDatas.netherModifiedChunks[i][j]);
                 }
             }
         }
@@ -289,7 +294,7 @@ function getChunkBlocks(x) {
     // ajout de terrain si pas de modifs
     if (!isModified) {
         for (var xPos = 0; xPos < 16; xPos++) {
-            if (isInNether === false) {
+            if (worldDatas.isInNether === false) {
                 // herbe
                 result.push([
                     x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
@@ -323,7 +328,7 @@ function getChunkBlocks(x) {
                 }  
             }
         }
-        if (isInNether === false) {
+        if (worldDatas.isInNether === false) {
             // arbre
             //tronc
             result.push([
@@ -435,55 +440,56 @@ function loop() {
     var blockY = parseInt(mouseWorldPosY / BLOCKSIZE) * BLOCKSIZE;
     
     //deplace la camera
-    cameraX += (playerX - canvas.width / 2 - cameraX) / 30;
-    cameraY += (playerY - canvas.height / 2 - cameraY) / 30;
+    cameraX += (worldDatas.playerX - canvas.width / 2 - cameraX) / 30;
+    cameraY += (worldDatas.playerY - canvas.height / 2 - cameraY) / 30;
     
     //calcule dans quel chunk est le joueur
-    var playerChunk = parseInt(parseInt(playerX / BLOCKSIZE) / 16) - (playerX < 0 ? 1 : 0);
+    var playerChunk = parseInt(parseInt(worldDatas.playerX / BLOCKSIZE) / 16) - (worldDatas.playerX < 0 ? 1 : 0);
     
     //nether
-    if (isASpecificBlock(playerX, playerY, 10) && isInNether === false) {
-        isInNether = true;
-        noise.seed(proceduraleNetherSeed);
-        playerX += 3 * BLOCKSIZE;
-        playerY = getYProcedural(playerX);
-    } else if (isASpecificBlock(playerX, playerY, 10)) {
-        isInNether = false;
-        noise.seed(proceduraleSeed);
-        playerX += 3 * BLOCKSIZE;
-        playerY = getYProcedural(playerX);
+    if (isASpecificBlock(worldDatas.playerX, worldDatas.playerY, 10) && worldDatas.isInNether === false) {
+        worldDatas.isInNether = true;
+        noise.seed(worldDatas.proceduraleNetherSeed);
+        worldDatas.playerX += 3 * BLOCKSIZE;
+        worldDatas.playerY = getYProcedural(worldDatas.playerX);
+    } else if (isASpecificBlock(worldDatas.playerX, worldDatas.playerY, 10)) {
+        worldDatas.isInNether = false;
+        noise.seed(worldDatas
+            .proceduraleSeed);
+        worldDatas.playerX += 3 * BLOCKSIZE;
+        worldDatas.playerY = getYProcedural(worldDatas.playerX);
     }
     
-    if (!inventory.opened) {
+    if (!worldDatas.inventory.opened) {
         //#region PHISIQUES
         // vertical
         // sol
-        if (isABlock(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity) && playerYVelocity >= 0 && !isASpecificBlock(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity, 6)) {
-            if (playerYVelocity > 13) {
-                playerLife -= (playerYVelocity - 13) / 2;
-                playerLife -= playerLife % 0.5;
+        if (isABloc(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + worldDatas.playerYVelocity) && worldDatas.playerYVelocity >= 0 && !isASpecificBlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + worldDatas.playerYVelocity, 6)) {
+            if (worldDatas.playerYVelocity > 13) {
+                worldDatas.playerLife -= (worldDatas.playerYVelocity - 13) / 2;
+                worldDatas.playerLife -= worldDatas.playerLife % 0.5;
             } 
-            playerYVelocity = 0;
+            worldDatas.playerYVelocity = 0;
         }else {
-            playerYVelocity += GRAVITY_FORCE;
+            worldDatas.playerYVelocity += GRAVITY_FORCE;
         }
         
         // toit
-    if (isABlock(playerX, playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2) && !isASpecificBlock(playerX, playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2, 6) && playerYVelocity <= 0) {
-        playerYVelocity = 0;
+    if (isABloc(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2) && !isASpecificBlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2, 6) && worldDatas.playerYVelocity <= 0) {
+        worldDatas.playerYVelocity = 0;
     }
-    playerY += playerYVelocity;
+    worldDatas.playerY += worldDatas.playerYVelocity;
     
     // horizontal
-    if (isRightPressed && (!isABlock(playerX + PLAYER_WIDTH / 2, playerY) || isASpecificBlock(playerX + PLAYER_WIDTH / 2, playerY, 6) ||
-    (isASpecificBlock(playerX + PLAYER_WIDTH / 2, playerY, 3) && isASpecificBlock(playerX + PLAYER_WIDTH / 2 + BLOCKSIZE, playerY, 10)) ||
-    isASpecificBlock(playerX + PLAYER_WIDTH / 2, playerY, 10))) {
-        playerX += MOVE_SPEED;
+    if (isRightPressed && (!isABloc(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY) || isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY, 6) ||
+    (isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY, 3) && isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2 + BLOCKSIZE, worldDatas.playerY, 10)) ||
+    isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY, 10))) {
+        worldDatas.playerX += MOVE_SPEED;
     }
-    if  (isLeftPressed && (!isABlock(playerX - PLAYER_WIDTH / 2, playerY) || isASpecificBlock(playerX - PLAYER_WIDTH / 2, playerY, 6) ||
-    (isASpecificBlock(playerX - PLAYER_WIDTH / 2, playerY, 3) && isASpecificBlock(playerX - PLAYER_WIDTH / 2 - BLOCKSIZE, playerY, 10)) ||
-    isASpecificBlock(playerX - PLAYER_WIDTH / 2, playerY, 10)) && playerX - PLAYER_WIDTH / 2 >= 5) {
-        playerX -= MOVE_SPEED;
+    if  (isLeftPressed && (!isABloc(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY) || isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY, 6) ||
+    (isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY, 3) && isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2 - BLOCKSIZE, worldDatas.playerY, 10)) ||
+    isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY, 10)) && worldDatas.playerX - PLAYER_WIDTH / 2 >= 5) {
+        worldDatas.playerX -= MOVE_SPEED;
     }
     
     // sol zombie
@@ -497,20 +503,20 @@ function loop() {
     
     
     // horizontal zombie
-    if (zombieX < playerX && (isABlock(zombieX + ZOMBIE_WIDTH, zombieY + ZOMBIE_HEIGHT / 2) || isABlock(zombieX + ZOMBIE_WIDTH, zombieY))) {
+    if (zombieX < worldDatas.playerX && (isABloc(zombieX + ZOMBIE_WIDTH, zombieY + ZOMBIE_HEIGHT / 2) || isABloc(zombieX + ZOMBIE_WIDTH, zombieY))) {
         isZombieBlockedOnSide = true;
         zombieX -= ZOMBIE_MOVE_SPEED;
     }
-    if (zombieX > playerX && (isABlock(zombieX, zombieY + ZOMBIE_HEIGHT / 2) || isABlock(zombieX, zombieY))) {
+    if (zombieX > worldDatas.playerX && (isABloc(zombieX, zombieY + ZOMBIE_HEIGHT / 2) || isABloc(zombieX, zombieY))) {
         isZombieBlockedOnSide = true;
         zombieX += ZOMBIE_MOVE_SPEED;
     }
 
     //deplace le zombie
-    if (zombieX > playerX && isZombieBlockedOnSide === false && zombieX - playerX > -1 && zombieX - playerX < ZOMBIE_FOLLOW_DISTANCE) {
+    if (zombieX > worldDatas.playerX && isZombieBlockedOnSide === false && zombieX - worldDatas.playerX > -1 && zombieX - worldDatas.playerX < ZOMBIE_FOLLOW_DISTANCE) {
         zombieX -= ZOMBIE_MOVE_SPEED;
     }
-    if (zombieX < playerX && isZombieBlockedOnSide === false  && playerX - zombieX > -1 && playerX - zombieX < ZOMBIE_FOLLOW_DISTANCE) {
+    if (zombieX < worldDatas.playerX && isZombieBlockedOnSide === false  && worldDatas.playerX - zombieX > -1 && worldDatas.playerX - zombieX < ZOMBIE_FOLLOW_DISTANCE) {
         zombieX += ZOMBIE_MOVE_SPEED;
     }
     if (gravityZombie === false && isZombieBlockedOnSide) {
@@ -519,7 +525,7 @@ function loop() {
     zombieY += zombieYVelocity;
     
     //portail
-    if(isClicked && inventory.content[usedHotbarID] === 6) {
+    if(isClicked && worldDatas.inventory.content[usedHotbarID] === 6) {
         if (isASpecificBlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2 + BLOCKSIZE, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2, 3) &&
         isASpecificBlock(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 2, 3) &&
         isASpecificBlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 3, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 + BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 3, 3) &&
@@ -533,48 +539,48 @@ function loop() {
     
     //#region DEGATS
     //degats du feux
-    if (isASpecificBlock(playerX, playerY + PLAYER_HEIGHT / 2, 6) && fireTime === 0) {
-        fireTime = 299;
+    if (isASpecificBlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2, 6) && worldDatas.fireTime === 0) {
+        worldDatas.fireTime = 299;
     }
-    if (fireTime > 0) {
-        if (fireTime % 100 === 0) {
-            playerLife -= 1.5;
+    if (worldDatas.fireTime > 0) {
+        if (worldDatas.fireTime % 100 === 0) {
+            worldDatas.playerLife -= 1.5;
         }
-        fireTime--;
+        worldDatas.fireTime--;
     }
     //#endregion
 
     //#region POSER/CASSER
     // trouve le bon chunk
     var chunk = parseInt(parseInt(blockX / BLOCKSIZE) / 16) - (blockX < 0 ? 1 : 0);
-    var chunkIndex = modifiedChunks.length;
-    var netherChunkIndex = netherModifiedChunks.length;
-    if (isInNether === false) {
-        for (var i = 0; i < modifiedChunks.length; i++) {
-            if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) === chunk) {
+    var chunkIndex = worldDatas.modifiedChunks.length;
+    var netherChunkIndex = worldDatas.netherModifiedChunks.length;
+    if (worldDatas.isInNether === false) {
+        for (var i = 0; i < worldDatas.modifiedChunks.length; i++) {
+            if (parseInt(parseInt(worldDatas.modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (worldDatas.modifiedChunks[i][0][0] < 0 ? 1 : 0) === chunk) {
                 chunkIndex = i;
             }
         }
     } else {
-        for (var i = 0; i < netherModifiedChunks.length; i++) {
-            if (parseInt(parseInt(netherModifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (netherModifiedChunks[i][0][0] < 0 ? 1 : 0) === chunk) {
+        for (var i = 0; i < worldDatas.netherModifiedChunks.length; i++) {
+            if (parseInt(parseInt(worldDatas.netherModifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (worldDatas.netherModifiedChunks[i][0][0] < 0 ? 1 : 0) === chunk) {
                 netherChunkIndex = i;
             }
         }
     }
 
     //poser bloc
-    if (isInNether === false) {
-        if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2)) {
+    if (worldDatas.isInNether === false) {
+        if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && usedHotbarID != 8) {
             // si le chunk n'etait pas modifié creer le terrain
-            if (modifiedChunks[chunkIndex] == null) {
+            if (worldDatas.modifiedChunks[chunkIndex] == null) {
                 var terrain = [];
                 for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
                     terrain.push(getChunkBlocks(chunkIndex)[i]);
                 }
-                modifiedChunks.push([]);
+                worldDatas.modifiedChunks.push([]);
                 for (var i = 0; i < terrain.length; i++) {
-                    modifiedChunks[modifiedChunks.length - 1].push(terrain[i]);
+                    worldDatas.modifiedChunks[worldDatas.modifiedChunks.length - 1].push(terrain[i]);
                 }
             }
             // poser
@@ -582,24 +588,24 @@ function loop() {
             (isABlock(blockX, blockY - BLOCKSIZE * 1.5) && !isASpecificBlock(blockX, blockY - BLOCKSIZE * 1.5, 6)) ||
             (isABlock(blockX + BLOCKSIZE * 1.5, blockY) && !isASpecificBlock(blockX + BLOCKSIZE * 1.5, blockY, 6)) ||
             (isABlock(blockX - BLOCKSIZE * 1.5, blockY) && !isASpecificBlock(blockX - BLOCKSIZE * 1.5, blockY, 6)) || canPlaceAir) {
-                if (chunkIndex == modifiedChunks.length) {
-                    modifiedChunks.push([]);
+                if (chunkIndex == worldDatas.modifiedChunks.length) {
+                    worldDatas.modifiedChunks.push([]);
                 }
-                var newBlock = [blockX, blockY, inventory.content[usedHotbarID], 0];
-                modifiedChunks[chunkIndex].push(newBlock);
+                var newBlock = [blockX, blockY, worldDatas.inventory.content[usedHotbarID], 0];
+                worldDatas.modifiedChunks[chunkIndex].push(newBlock);
             }
         }
     } else {
         if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2)) {
             // si le chunk n'etait pas modifié creer le terrain
-            if (netherModifiedChunks[netherChunkIndex] == null) {
+            if (worldDatas.netherModifiedChunks[netherChunkIndex] == null) {
                 var terrain = [];
                 for (var i = 0; i < getChunkBlocks(netherChunkIndex).length; i++) {
                     terrain.push(getChunkBlocks(netherChunkIndex)[i]);
                 }
-                netherModifiedChunks.push([]);
+                worldDatas.netherModifiedChunks.push([]);
                 for (var i = 0; i < terrain.length; i++) {
-                    netherModifiedChunks[netherModifiedChunks.length - 1].push(terrain[i]);
+                    worldDatas.netherModifiedChunks[worldDatas.netherModifiedChunks.length - 1].push(terrain[i]);
                 }
             }
             // poser
@@ -607,123 +613,123 @@ function loop() {
             (isABlock(blockX, blockY - BLOCKSIZE * 1.5) && !isASpecificBlock(blockX, blockY - BLOCKSIZE * 1.5, 6)) ||
             (isABlock(blockX + BLOCKSIZE * 1.5, blockY) && !isASpecificBlock(blockX + BLOCKSIZE * 1.5, blockY, 6)) ||
             (isABlock(blockX - BLOCKSIZE * 1.5, blockY) && !isASpecificBlock(blockX - BLOCKSIZE * 1.5, blockY, 6)) || canPlaceAir) {
-                if (netherChunkIndex == netherModifiedChunks.length) {
-                    netherModifiedChunks.push([]);
+                if (netherChunkIndex == worldDatas.netherModifiedChunks.length) {
+                    worldDatas.netherModifiedChunks.push([]);
                 }
-                var newBlock = [blockX, blockY, inventory.content[usedHotbarID], 0];
-                netherModifiedChunks[netherChunkIndex].push(newBlock);
+                var newBlock = [blockX, blockY, worldDatas.inventory.content[usedHotbarID], 0];
+                worldDatas.netherModifiedChunks[netherChunkIndex].push(newBlock);
             }
         }
     }
     
-    if (isInNether === false) {
+    if (worldDatas.isInNether === false) {
         //place les blocs de portail
         if (isANewPortal) {
             var newBlock = [blockX, blockY, 10];
-            modifiedChunks[chunkIndex].push(newBlock);
+            worldDatas.modifiedChunks[chunkIndex].push(newBlock);
             var newBlock = [blockX, blockY - BLOCKSIZE, 10];
-            modifiedChunks[chunkIndex].push(newBlock);
+            worldDatas.modifiedChunks[chunkIndex].push(newBlock);
             var newBlock = [blockX, blockY - BLOCKSIZE * 2, 10];
-            modifiedChunks[chunkIndex].push(newBlock);
+            worldDatas.modifiedChunks[chunkIndex].push(newBlock);
             var newBlock = [blockX + BLOCKSIZE, blockY, 10];
-            modifiedChunks[chunkIndex].push(newBlock);
+            worldDatas.modifiedChunks[chunkIndex].push(newBlock);
             var newBlock = [blockX + BLOCKSIZE, blockY - BLOCKSIZE, 10];
-            modifiedChunks[chunkIndex].push(newBlock);
+            worldDatas.modifiedChunks[chunkIndex].push(newBlock);
             var newBlock = [blockX + BLOCKSIZE, blockY - BLOCKSIZE * 2, 10];
-            modifiedChunks[chunkIndex].push(newBlock);
+            worldDatas.modifiedChunks[chunkIndex].push(newBlock);
         }
     } else {
-        if (netherModifiedChunks.length === 0) {
+        if (worldDatas.netherModifiedChunks.length === 0) {
             //place le portail par defaut dans le nether
             var terrain = [];
             for (var i = 0; i < getChunkBlocks(playerChunk).length; i++) {
                 terrain.push(getChunkBlocks(playerChunk)[i]);
             }
-            netherModifiedChunks.push([]);
+            worldDatas.netherModifiedChunks.push([]);
             for (var i = 0; i < terrain.length; i++) {
-                netherModifiedChunks[netherModifiedChunks.length - 1].push(terrain[i]);
+                worldDatas.netherModifiedChunks[worldDatas.netherModifiedChunks.length - 1].push(terrain[i]);
             }
             // creation des blocs de portail dans le nether
             //blocs de gauches
-            var portalX = parseInt((playerX - 5 * BLOCKSIZE )/ BLOCKSIZE) * BLOCKSIZE;
+            var portalX = parseInt((worldDatas.playerX - 5 * BLOCKSIZE )/ BLOCKSIZE) * BLOCKSIZE;
             var newBlock = [portalX, blockY, 10, 0];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             newBlock = [portalX, blockY - BLOCKSIZE, 10, 0];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             newBlock = [portalX, blockY - BLOCKSIZE * 2, 10, 0];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             //blocs de droites
             newBlock = [portalX + BLOCKSIZE, blockY, 10, 0];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             newBlock = [portalX + BLOCKSIZE, blockY - BLOCKSIZE, 10, 0];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             newBlock = [portalX + BLOCKSIZE, blockY - BLOCKSIZE * 2, 10, 0];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             // creation des blocs d'obsidienne du portail dans le nether
             newBlock = [portalX, blockY + BLOCKSIZE, 3];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             newBlock = [portalX - BLOCKSIZE, blockY + BLOCKSIZE, 3];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             newBlock = [portalX - BLOCKSIZE, blockY, 3];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             newBlock = [portalX - BLOCKSIZE, blockY - BLOCKSIZE, 3];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             newBlock = [portalX - BLOCKSIZE, blockY - BLOCKSIZE * 2, 3];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             newBlock = [portalX - BLOCKSIZE, blockY - BLOCKSIZE * 3, 3];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             newBlock = [portalX, blockY - BLOCKSIZE * 3, 3];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             newBlock = [portalX + BLOCKSIZE, blockY - BLOCKSIZE * 3, 3];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             newBlock = [portalX + BLOCKSIZE * 2, blockY - BLOCKSIZE * 3, 3];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             newBlock = [portalX + BLOCKSIZE * 2, blockY - BLOCKSIZE * 2, 3];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             newBlock = [portalX + BLOCKSIZE * 2, blockY - BLOCKSIZE, 3];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             newBlock = [portalX + BLOCKSIZE * 2, blockY, 3];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             newBlock = [portalX + BLOCKSIZE * 2, blockY + BLOCKSIZE, 3];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             newBlock = [portalX + BLOCKSIZE, blockY + BLOCKSIZE, 3];
-            netherModifiedChunks[playerChunk].push(newBlock);
+            worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
         }
 
         //place les blocs de portail
         if (isANewPortal) {
             var newBlock = [blockX, blockY, 10];
-            netherModifiedChunks[netherChunkIndex].push(newBlock);
+            worldDatas.netherModifiedChunks[netherChunkIndex].push(newBlock);
             var newBlock = [blockX, blockY - BLOCKSIZE, 10];
-            netherModifiedChunks[netherChunkIndex].push(newBlock);
+            worldDatas.netherModifiedChunks[netherChunkIndex].push(newBlock);
             var newBlock = [blockX, blockY - BLOCKSIZE * 2, 10];
-            netherModifiedChunks[netherChunkIndex].push(newBlock);
+            worldDatas.netherModifiedChunks[netherChunkIndex].push(newBlock);
             var newBlock = [blockX + BLOCKSIZE, blockY, 10];
-            netherModifiedChunks[netherChunkIndex].push(newBlock);
+            worldDatas.netherModifiedChunks[netherChunkIndex].push(newBlock);
             var newBlock = [blockX + BLOCKSIZE, blockY - BLOCKSIZE, 10];
-            netherModifiedChunks[netherChunkIndex].push(newBlock);
+            worldDatas.netherModifiedChunks[netherChunkIndex].push(newBlock);
             var newBlock = [blockX + BLOCKSIZE, blockY - BLOCKSIZE * 2, 10];
-            netherModifiedChunks[netherChunkIndex].push(newBlock);
+            worldDatas.netherModifiedChunks[netherChunkIndex].push(newBlock);
         }
     }
 
-    if (isInNether === false) {
+    if (worldDatas.isInNether === false) {
         //casser bloc
         if (isRightClicked) {
             // si le chunk n'etait pas modifié creer le terrain
-            if (modifiedChunks[chunkIndex] == null) {
+            if (worldDatas.modifiedChunks[chunkIndex] == null) {
                 var terrain = [];
                 for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
                     terrain.push(getChunkBlocks(chunkIndex)[i]);
                 }
-                modifiedChunks.push([]);
+                worldDatas.modifiedChunks.push([]);
                 for (var i = 0; i < terrain.length; i++) {
-                    modifiedChunks[modifiedChunks.length - 1].push(terrain[i]);
+                    worldDatas.modifiedChunks[worldDatas.modifiedChunks.length - 1].push(terrain[i]);
                 }
             }
-            for (var i = 0; i < modifiedChunks[chunkIndex].length; i++) {
-                if (blockX == modifiedChunks[chunkIndex][i][0] && blockY == modifiedChunks[chunkIndex][i][1]) {
-                    modifiedChunks[chunkIndex].splice(i, 1);
+            for (var i = 0; i < worldDatas.modifiedChunks[chunkIndex].length; i++) {
+                if (blockX == worldDatas.modifiedChunks[chunkIndex][i][0] && blockY == worldDatas.modifiedChunks[chunkIndex][i][1]) {
+                    worldDatas.modifiedChunks[chunkIndex].splice(i, 1);
                 }
             }
         }
@@ -731,19 +737,19 @@ function loop() {
         //casser bloc
         if (isRightClicked) {
             // si le chunk n'etait pas modifié creer le terrain
-            if (netherModifiedChunks[netherChunkIndex] == null) {
+            if (worldDatas.netherModifiedChunks[netherChunkIndex] == null) {
                 var terrain = [];
                 for (var i = 0; i < getChunkBlocks(netherChunkIndex).length; i++) {
                     terrain.push(getChunkBlocks(netherChunkIndex)[i]);
                 }
-                netherModifiedChunks.push([]);
+                worldDatas.netherModifiedChunks.push([]);
                 for (var i = 0; i < terrain.length; i++) {
-                    netherModifiedChunks[netherModifiedChunks.length - 1].push(terrain[i]);
+                    worldDatas.netherModifiedChunks[worldDatas.netherModifiedChunks.length - 1].push(terrain[i]);
                 }
             }
-            for (var i = 0; i < netherModifiedChunks[netherChunkIndex].length; i++) {
-                if (blockX == netherModifiedChunks[netherChunkIndex][i][0] && blockY == netherModifiedChunks[netherChunkIndex][i][1]) {
-                    netherModifiedChunks[netherChunkIndex].splice(i, 1);
+            for (var i = 0; i < worldDatas.netherModifiedChunks[netherChunkIndex].length; i++) {
+                if (blockX == worldDatas.netherModifiedChunks[netherChunkIndex][i][0] && blockY == worldDatas.netherModifiedChunks[netherChunkIndex][i][1]) {
+                    worldDatas.netherModifiedChunks[netherChunkIndex].splice(i, 1);
                 }
             }
         }
@@ -768,14 +774,14 @@ function loop() {
     }
 
     //#region INVENTAIRE
-    if (inventory.opened) {
+    if (worldDatas.inventory.opened) {
         var cellX = parseInt((mouseScreenPosX - canvas.width / 2 + GUI_SIZE * 4.6) / GUI_SIZE) - ((mouseScreenPosX - canvas.width / 2 + GUI_SIZE * 4.6) < 0 ? 1 : 0);
         var cellY = parseInt((mouseScreenPosY - canvas.height / 2) / GUI_SIZE) - ((mouseScreenPosY - canvas.height / 2) < 0 ? 1 : 0);
         var cellI = cellX + (3 - cellY) * 9;
         if (isClicked && cellX >= 0 && cellX <= 8 && cellY >= 0 && cellY <= 3) {
-            var wasInMouse = inventory.inMouse;
-            inventory.inMouse = inventory.content[cellI];
-            inventory.content[cellI] = wasInMouse;
+            var wasInMouse = worldDatas.inventory.inMouse;
+            worldDatas.inventory.inMouse = worldDatas.inventory.content[cellI];
+            worldDatas.inventory.content[cellI] = wasInMouse;
         }
     }
     //#endregion
@@ -812,7 +818,7 @@ function loop() {
 
     //dessine la limite du monde
     if (playerChunk <= renderDistance) {
-        for (var i = -borderFrameCounter * 3 - canvas.height * 5; i < canvas.height + playerY; i += BLOCKSIZE) {
+        for (var i = -borderFrameCounter * 3 - canvas.height * 5; i < canvas.height + worldDatas.playerY; i += BLOCKSIZE) {
             context.drawImage(forcefield, -BLOCKSIZE - cameraX, i - cameraY, BLOCKSIZE, BLOCKSIZE);
         }
     }
@@ -821,7 +827,7 @@ function loop() {
     context.drawImage(zombieSprite, zombieX - cameraX, zombieY - cameraY, ZOMBIE_WIDTH, ZOMBIE_HEIGHT);
     
     // dessine le joueur
-    context.drawImage(playerSprite, playerX - cameraX - PLAYER_WIDTH / 2, playerY - cameraY - PLAYER_HEIGHT / 2, PLAYER_WIDTH, PLAYER_HEIGHT);
+    context.drawImage(playerSprite, worldDatas.playerX - cameraX - PLAYER_WIDTH / 2, worldDatas.playerY - cameraY - PLAYER_HEIGHT / 2, PLAYER_WIDTH, PLAYER_HEIGHT);
 
     // dessine le carré noir
     context.strokeSytle = "black";
@@ -838,8 +844,8 @@ function loop() {
         context.drawImage(hotbarCellSprite, hotbarStartX + cellIndex * hotbarCellSize,
         canvas.height - hotbarCellSize - hotbarHeight, hotbarCellSize, hotbarCellSize);
         // item
-        if(inventory.content[cellIndex] != null) {
-            context.drawImage(blockTextures[inventory.content[cellIndex]], hotbarStartX + cellIndex * hotbarCellSize + itemsMargin,
+        if(worldDatas.inventory.content[cellIndex] != null) {
+            context.drawImage(blockTextures[worldDatas.inventory.content[cellIndex]], hotbarStartX + cellIndex * hotbarCellSize + itemsMargin,
             canvas.height - hotbarCellSize - hotbarHeight + itemsMargin, hotbarCellSize - 2 * itemsMargin, hotbarCellSize - 2 * itemsMargin);
         }
     }
@@ -850,16 +856,16 @@ function loop() {
     // dessine les coeurs
     var heartSize = GUI_SIZE / 2;
     var heartHeight = 80;
-    for (var heartIndex = 0; heartIndex < playerLife; heartIndex ++) {
+    for (var heartIndex = 0; heartIndex < worldDatas.playerLife; heartIndex ++) {
         context.drawImage(fullHeartSprite, hotbarStartX + heartIndex * heartSize,
         canvas.height - heartSize - heartHeight, heartSize, heartSize);
-        if (playerLife / 0.5 % 2 != 0 && (heartIndex === playerLife - 1 || heartIndex === playerLife - 0.5)) {
+        if (worldDatas.playerLife / 0.5 % 2 != 0 && (heartIndex === worldDatas.playerLife - 1 || heartIndex === worldDatas.playerLife - 0.5)) {
             context.drawImage(halfHeartSprite, hotbarStartX + heartIndex * heartSize,
             canvas.height - heartSize - heartHeight, heartSize, heartSize);
         }
-        if (playerLife < 10 && (heartIndex === playerLife - 1 || heartIndex === playerLife - 0.5)) {
-            for (var heartIndex = playerLife; heartIndex < 10; heartIndex ++) {
-                if (playerLife / 0.5 % 2 != 0 && heartIndex === playerLife) {
+        if (worldDatas.playerLife < 10 && (heartIndex === worldDatas.playerLife - 1 || heartIndex === worldDatas.playerLife - 0.5)) {
+            for (var heartIndex = worldDatas.playerLife; heartIndex < 10; heartIndex ++) {
+                if (worldDatas.playerLife / 0.5 % 2 != 0 && heartIndex === worldDatas.playerLife) {
                     heartIndex += 0.5;
                 }
                 if (heartIndex != 10) {
@@ -873,7 +879,7 @@ function loop() {
     // dessine l'inventaire
     var inventorySizeX = GUI_SIZE * 10
     var inventorySizeY = 166 * inventorySizeX / 176;
-    if (inventory.opened) {
+    if (worldDatas.inventory.opened) {
         context.drawImage(
         inventorySprite,
         canvas.width / 2 - inventorySizeX / 2,
@@ -884,9 +890,9 @@ function loop() {
         // content
         for (var y = 0; y < 3; y++) {
             for (var x = 0; x < 9; x++) {
-                if(inventory.content[x + (y + 1) * 9] != null) {
+                if(worldDatas.inventory.content[x + (y + 1) * 9] != null) {
                     context.drawImage(
-                        blockTextures[inventory.content[x + (y + 1) * 9]],
+                        blockTextures[worldDatas.inventory.content[x + (y + 1) * 9]],
                         canvas.width / 2 - inventorySizeX / 2 + GUI_SIZE * 0.55 + GUI_SIZE * x * 1.02,
                         canvas.height / 2 + inventorySizeY / 2 - GUI_SIZE * 2.55 - GUI_SIZE * y,
                         GUI_SIZE * 0.75,
@@ -897,9 +903,9 @@ function loop() {
         }
         // hotbar
         for (var i = 0; i < 9; i++) {
-            if(inventory.content[i] != null) {
+            if(worldDatas.inventory.content[i] != null) {
                 context.drawImage(
-                    blockTextures[inventory.content[i]],
+                    blockTextures[worldDatas.inventory.content[i]],
                     canvas.width / 2 - inventorySizeX / 2 + GUI_SIZE * 0.55 + GUI_SIZE * i * 1.02,
                     canvas.height / 2 + inventorySizeY / 2 - GUI_SIZE * 1.3,
                     GUI_SIZE * 0.75,
@@ -908,9 +914,9 @@ function loop() {
             }
         }
         // in mouse
-        if (inventory.inMouse != null) {
+        if (worldDatas.inventory.inMouse != null) {
             context.drawImage(
-                blockTextures[inventory.inMouse],
+                blockTextures[worldDatas.inventory.inMouse],
                 mouseScreenPosX - GUI_SIZE * 0.75 / 2,
                 mouseScreenPosY - GUI_SIZE * 0.75 / 2,
                 GUI_SIZE * 0.75,
@@ -918,6 +924,10 @@ function loop() {
                 );
         }
     }
+    //#endregion
+
+    //#region SAUVEGARDE
+    localStorage.setItem("datas", JSON.stringify(worldDatas));
     //#endregion
 
     isClicked = false;
@@ -963,12 +973,12 @@ document.addEventListener('keydown', function(e) {
         isLeftPressed = true;
     }
     // saut
-    if (e.which === 32 && isABlock(playerX, playerY + PLAYER_HEIGHT / 2 + 5)) {
-        playerYVelocity = -JUMP_FORCE;
+    if (e.which === 32 && isABloc(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + 5)) {
+        worldDatas.playerYVelocity = -JUMP_FORCE;
     }
     // enventaire (e)
     if (e.which === 69) {
-        inventory.opened = !inventory.opened;
+        worldDatas.inventory.opened = !worldDatas.inventory.opened;
     }
 });
 document.addEventListener('keyup', function(e) {
