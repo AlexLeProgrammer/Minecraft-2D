@@ -216,7 +216,7 @@ var proceduraleSeed = Math.random();
 noise.seed(proceduraleSeed);
 
 //detecte si il y a un bloc a des coordonnees precises
-function isABloc(x, y) {
+function isABlock(x, y) {
     var chunk = parseInt(parseInt(x / BLOCKSIZE) / 16) - (x < 0 ? 1 : 0);
     var chunkBlocks = getChunkBlocks(chunk);
     var result = false;
@@ -449,7 +449,7 @@ function loop() {
         //#region PHISIQUES
         // vertical
         // sol
-        if (isABloc(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity) && playerYVelocity >= 0 && !isASpecificBlock(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity, 6)) {
+        if (isABlock(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity) && playerYVelocity >= 0 && !isASpecificBlock(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity, 6)) {
             if (playerYVelocity > 13) {
                 playerLife -= (playerYVelocity - 13) / 2;
                 playerLife -= playerLife % 0.5;
@@ -460,25 +460,25 @@ function loop() {
         }
         
         // toit
-    if (isABloc(playerX, playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2) && !isASpecificBlock(playerX, playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2, 6) && playerYVelocity <= 0) {
+    if (isABlock(playerX, playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2) && !isASpecificBlock(playerX, playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2, 6) && playerYVelocity <= 0) {
         playerYVelocity = 0;
     }
     playerY += playerYVelocity;
     
     // horizontal
-    if (isRightPressed && (!isABloc(playerX + PLAYER_WIDTH / 2, playerY) || isASpecificBlock(playerX + PLAYER_WIDTH / 2, playerY, 6) ||
+    if (isRightPressed && (!isABlock(playerX + PLAYER_WIDTH / 2, playerY) || isASpecificBlock(playerX + PLAYER_WIDTH / 2, playerY, 6) ||
     (isASpecificBlock(playerX + PLAYER_WIDTH / 2, playerY, 3) && isASpecificBlock(playerX + PLAYER_WIDTH / 2 + BLOCKSIZE, playerY, 10)) ||
     isASpecificBlock(playerX + PLAYER_WIDTH / 2, playerY, 10))) {
         playerX += MOVE_SPEED;
     }
-    if  (isLeftPressed && (!isABloc(playerX - PLAYER_WIDTH / 2, playerY) || isASpecificBlock(playerX - PLAYER_WIDTH / 2, playerY, 6) ||
+    if  (isLeftPressed && (!isABlock(playerX - PLAYER_WIDTH / 2, playerY) || isASpecificBlock(playerX - PLAYER_WIDTH / 2, playerY, 6) ||
     (isASpecificBlock(playerX - PLAYER_WIDTH / 2, playerY, 3) && isASpecificBlock(playerX - PLAYER_WIDTH / 2 - BLOCKSIZE, playerY, 10)) ||
     isASpecificBlock(playerX - PLAYER_WIDTH / 2, playerY, 10)) && playerX - PLAYER_WIDTH / 2 >= 5) {
         playerX -= MOVE_SPEED;
     }
     
     // sol zombie
-    if (isABloc(zombieX, zombieY + ZOMBIE_HEIGHT + zombieYVelocity) && zombieYVelocity >= 0) {
+    if (isABlock(zombieX, zombieY + ZOMBIE_HEIGHT + zombieYVelocity) && zombieYVelocity >= 0) {
         zombieYVelocity = 0;
         gravityZombie = false;
     }else {
@@ -488,11 +488,11 @@ function loop() {
     
     
     // horizontal zombie
-    if (zombieX < playerX && (isABloc(zombieX + ZOMBIE_WIDTH, zombieY + ZOMBIE_HEIGHT / 2) || isABloc(zombieX + ZOMBIE_WIDTH, zombieY))) {
+    if (zombieX < playerX && (isABlock(zombieX + ZOMBIE_WIDTH, zombieY + ZOMBIE_HEIGHT / 2) || isABlock(zombieX + ZOMBIE_WIDTH, zombieY))) {
         isZombieBlockedOnSide = true;
         zombieX -= ZOMBIE_MOVE_SPEED;
     }
-    if (zombieX > playerX && (isABloc(zombieX, zombieY + ZOMBIE_HEIGHT / 2) || isABloc(zombieX, zombieY))) {
+    if (zombieX > playerX && (isABlock(zombieX, zombieY + ZOMBIE_HEIGHT / 2) || isABlock(zombieX, zombieY))) {
         isZombieBlockedOnSide = true;
         zombieX += ZOMBIE_MOVE_SPEED;
     }
@@ -538,7 +538,7 @@ function loop() {
     //#region POSER/CASSER
     // trouve le bon chunk
     var chunk = parseInt(parseInt(blockX / BLOCKSIZE) / 16) - (blockX < 0 ? 1 : 0);
-    var chunkIndex = netherModifiedChunks.length;
+    var chunkIndex = modifiedChunks.length;
     var netherChunkIndex = netherModifiedChunks.length;
     if (isInNether === false) {
         for (var i = 0; i < modifiedChunks.length; i++) {
@@ -556,7 +556,7 @@ function loop() {
 
     //poser bloc
     if (isInNether === false) {
-        if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && usedHotbarID != 8) {
+        if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && usedHotbarID != 8) {
             // si le chunk n'etait pas modifié creer le terrain
             if (modifiedChunks[chunkIndex] == null) {
                 var terrain = [];
@@ -569,8 +569,10 @@ function loop() {
                 }
             }
             // poser
-            if (isABloc(blockX, blockY + BLOCKSIZE * 1.5) || isABloc(blockX, blockY - BLOCKSIZE * 1.5) || isABloc(blockX + BLOCKSIZE * 1.5, blockY) || isABloc(blockX - BLOCKSIZE * 1.5, blockY) ||
-            mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
+            if ((isABlock(blockX, blockY + BLOCKSIZE * 1.5) && !isASpecificBlock(blockX, blockY + BLOCKSIZE * 1.5, 6)) ||
+            (isABlock(blockX, blockY - BLOCKSIZE * 1.5) && !isASpecificBlock(blockX, blockY - BLOCKSIZE * 1.5, 6)) ||
+            (isABlock(blockX + BLOCKSIZE * 1.5, blockY) && !isASpecificBlock(blockX + BLOCKSIZE * 1.5, blockY, 6)) ||
+            (isABlock(blockX - BLOCKSIZE * 1.5, blockY) && !isASpecificBlock(blockX - BLOCKSIZE * 1.5, blockY, 6)) || canPlaceAir) {
                 if (chunkIndex == modifiedChunks.length) {
                     modifiedChunks.push([]);
                 }
@@ -579,7 +581,7 @@ function loop() {
             }
         }
     } else {
-        if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && usedHotbarID != 8) {
+        if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && usedHotbarID != 8) {
             // si le chunk n'etait pas modifié creer le terrain
             if (netherModifiedChunks[netherChunkIndex] == null) {
                 var terrain = [];
@@ -592,8 +594,10 @@ function loop() {
                 }
             }
             // poser
-            if (isABloc(blockX, blockY + BLOCKSIZE * 1.5) || isABloc(blockX, blockY - BLOCKSIZE * 1.5) || isABloc(blockX + BLOCKSIZE * 1.5, blockY) || isABloc(blockX - BLOCKSIZE * 1.5, blockY) ||
-            mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
+            if ((isABlock(blockX, blockY + BLOCKSIZE * 1.5) && !isASpecificBlock(blockX, blockY + BLOCKSIZE * 1.5, 6)) ||
+            (isABlock(blockX, blockY - BLOCKSIZE * 1.5) && !isASpecificBlock(blockX, blockY - BLOCKSIZE * 1.5, 6)) ||
+            (isABlock(blockX + BLOCKSIZE * 1.5, blockY) && !isASpecificBlock(blockX + BLOCKSIZE * 1.5, blockY, 6)) ||
+            (isABlock(blockX - BLOCKSIZE * 1.5, blockY) && !isASpecificBlock(blockX - BLOCKSIZE * 1.5, blockY, 6)) || canPlaceAir) {
                 if (netherChunkIndex == netherModifiedChunks.length) {
                     netherModifiedChunks.push([]);
                 }
@@ -776,7 +780,7 @@ function loop() {
         for (var j = 0; j < blocks.length; j++) {
             //gere le sable
             if (blocks[j][2] === 4) {
-                if (isABloc(blocks[j][0] + 1, blocks[j][1] + BLOCKSIZE + 1 + blocks[j][3])) {
+                if (isABlock(blocks[j][0] + 1, blocks[j][1] + BLOCKSIZE + 1 + blocks[j][3])) {
                     blocks[j][3] = 0;
                     blocks[j][0] = parseInt(blocks[j][0] / BLOCKSIZE) * BLOCKSIZE;
                     blocks[j][1] = parseInt(blocks[j][1] / BLOCKSIZE) * BLOCKSIZE;
@@ -950,7 +954,7 @@ document.addEventListener('keydown', function(e) {
         isLeftPressed = true;
     }
     // saut
-    if (e.which === 32 && isABloc(playerX, playerY + PLAYER_HEIGHT / 2 + 5)) {
+    if (e.which === 32 && isABlock(playerX, playerY + PLAYER_HEIGHT / 2 + 5)) {
         playerYVelocity = -JUMP_FORCE;
     }
     // enventaire (e)
