@@ -260,7 +260,7 @@ function getXwithSeed(x) {
     } else if (x > 100) {
         x /= 100;
     }
-    result = parseInt((proceduraleSeed * 100 / (x + 1)) % 12);
+    result = parseInt((worldDatas.proceduraleSeed * 100 / (x + 1)) % 12);
 
     return result;
 }
@@ -464,7 +464,7 @@ function loop() {
         //#region PHISIQUES
         // vertical
         // sol
-        if (isABloc(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + worldDatas.playerYVelocity) && worldDatas.playerYVelocity >= 0 && !isASpecificBlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + worldDatas.playerYVelocity, 6)) {
+        if (isABlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + worldDatas.playerYVelocity) && worldDatas.playerYVelocity >= 0 && !isASpecificBlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + worldDatas.playerYVelocity, 6)) {
             if (worldDatas.playerYVelocity > 13) {
                 worldDatas.playerLife -= (worldDatas.playerYVelocity - 13) / 2;
                 worldDatas.playerLife -= worldDatas.playerLife % 0.5;
@@ -475,18 +475,18 @@ function loop() {
         }
         
         // toit
-    if (isABloc(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2) && !isASpecificBlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2, 6) && worldDatas.playerYVelocity <= 0) {
+    if (isABlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2) && !isASpecificBlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2, 6) && worldDatas.playerYVelocity <= 0) {
         worldDatas.playerYVelocity = 0;
     }
     worldDatas.playerY += worldDatas.playerYVelocity;
     
     // horizontal
-    if (isRightPressed && (!isABloc(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY) || isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY, 6) ||
+    if (isRightPressed && (!isABlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY) || isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY, 6) ||
     (isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY, 3) && isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2 + BLOCKSIZE, worldDatas.playerY, 10)) ||
     isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY, 10))) {
         worldDatas.playerX += MOVE_SPEED;
     }
-    if  (isLeftPressed && (!isABloc(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY) || isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY, 6) ||
+    if  (isLeftPressed && (!isABlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY) || isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY, 6) ||
     (isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY, 3) && isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2 - BLOCKSIZE, worldDatas.playerY, 10)) ||
     isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY, 10)) && worldDatas.playerX - PLAYER_WIDTH / 2 >= 5) {
         worldDatas.playerX -= MOVE_SPEED;
@@ -503,11 +503,11 @@ function loop() {
     
     
     // horizontal zombie
-    if (zombieX < worldDatas.playerX && (isABloc(zombieX + ZOMBIE_WIDTH, zombieY + ZOMBIE_HEIGHT / 2) || isABloc(zombieX + ZOMBIE_WIDTH, zombieY))) {
+    if (zombieX < worldDatas.playerX && (isABlock(zombieX + ZOMBIE_WIDTH, zombieY + ZOMBIE_HEIGHT / 2) || isABlock(zombieX + ZOMBIE_WIDTH, zombieY))) {
         isZombieBlockedOnSide = true;
         zombieX -= ZOMBIE_MOVE_SPEED;
     }
-    if (zombieX > worldDatas.playerX && (isABloc(zombieX, zombieY + ZOMBIE_HEIGHT / 2) || isABloc(zombieX, zombieY))) {
+    if (zombieX > worldDatas.playerX && (isABlock(zombieX, zombieY + ZOMBIE_HEIGHT / 2) || isABlock(zombieX, zombieY))) {
         isZombieBlockedOnSide = true;
         zombieX += ZOMBIE_MOVE_SPEED;
     }
@@ -571,7 +571,7 @@ function loop() {
 
     //poser bloc
     if (worldDatas.isInNether === false) {
-        if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && usedHotbarID != 8) {
+        if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && usedHotbarID != 8) {
             // si le chunk n'etait pas modifié creer le terrain
             if (worldDatas.modifiedChunks[chunkIndex] == null) {
                 var terrain = [];
@@ -973,7 +973,7 @@ document.addEventListener('keydown', function(e) {
         isLeftPressed = true;
     }
     // saut
-    if (e.which === 32 && isABloc(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + 5)) {
+    if (e.which === 32 && isABlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + 5)) {
         worldDatas.playerYVelocity = -JUMP_FORCE;
     }
     // enventaire (e)
