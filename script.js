@@ -123,7 +123,7 @@ fireAnimationFrames[30].src = 'sprites/blocks/fire_animation_frames/fire_ (31).p
 fireAnimationFrames[31].src = 'sprites/blocks/fire_animation_frames/fire_ (32).png';
 
 //textures des blocs
-var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image()];
+var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image()];
 blockTextures[0].src = 'sprites/blocks/oak_plank.png';
 blockTextures[1].src = 'sprites/blocks/grass.png';
 blockTextures[2].src = 'sprites/blocks/dirt.png';
@@ -131,13 +131,12 @@ blockTextures[3].src = 'sprites/blocks/obsidian.png';
 blockTextures[4].src = 'sprites/blocks/sand.png';
 blockTextures[5].src = 'sprites/blocks/stone.png';
 blockTextures[6].src = 'sprites/Items/flint_and_steel.png';
-
-//#endregion
-
 blockTextures[7].src = 'sprites/blocks/oak_log.png';
 blockTextures[8].src = 'sprites/blocks/oak_leaves.png';
 blockTextures[9].src = 'sprites/blocks/netherrack.png';
+blockTextures[10].src = 'sprites/blocks/portal_animation_frames/portal_ (1).png';
 
+//#endregion
 
 //variables des blocs
 var modifiedChunks = [];
@@ -152,6 +151,11 @@ var mouseScreenPosX = 0;
 var mouseScreenPosY = 0;
 var mouseWorldPosX = 0;
 var mouseWorldPosY = 0;
+
+//nether
+var netherModifiedChunks = [];
+var proceduraleNetherSeed = Math.random();
+var isInNether = false;
 
 //generation procedurale
 var proceduralDetail = 3;
@@ -168,7 +172,8 @@ var isZombieBlockedOnSide = false;
 
 //portail du nether
 var portalPose = [];
-var isAPortal = false;
+var isANewPortal = false;
+var portalWaitingTime = 0;
 
 //animation
 var animationFrameCounter = 0;
@@ -190,16 +195,17 @@ halfHeartSprite.src = 'sprites/gui/half_heart.png';
 var inventory = {
     opened: false,
     content: [
-        4, 1, 3, 3, 3, 5, 3, 0, 6,
-        6, 0, 0, 0, 3, 5, 3, 0, 1,
-        2, 1, 3, 3, 3, 3, 3, 0, 1,
-        2, 0, 3, 0, 3, 5, 4, 5, 1,
+        0, 0, 1, 1, 2, 2, 3, 3, 6,
+        4, 4, 5, 5, 7, 7, 8, 8, 9,
+        9, 0, 0, 1, 1, 2, 2, 3, 3,
+        10, 4, 4, 5, 5, 6, 6, 7, 7,
     ],
     inMouse: null,
 }
 
+
 for (var i = 0; i < inventory.content.length; i++) {
-    inventory.content[i] = parseInt(Math.random() * blockTextures.length + 1) - 1;
+    inventory.content[i] = parseInt(Math.random() * (blockTextures.length - 1) + 1) - 1;
     if(Math.random() >= 0.85) {
         inventory.content[i] = null;
     }
@@ -258,11 +264,22 @@ function getChunkBlocks(x) {
     var result = [];
     // ce chunk a-t-il des modifications
     var isModified = false;
-    for (var i = 0; i < modifiedChunks.length; i++) {
-        if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) == x) {
-            isModified = true;
-            for (var j = 0; j < modifiedChunks[i].length; j++) {
-                result.push(modifiedChunks[i][j]);
+    if (isInNether === false) {
+        for (var i = 0; i < modifiedChunks.length; i++) {
+            if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) == x) {
+                isModified = true;
+                for (var j = 0; j < modifiedChunks[i].length; j++) {
+                    result.push(modifiedChunks[i][j]);
+                }
+            }
+        }
+    } else {
+        for (var i = 0; i < netherModifiedChunks.length; i++) {
+            if (parseInt(parseInt(netherModifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (netherModifiedChunks[i][0][0] < 0 ? 1 : 0) == x) {
+                isModified = true;
+                for (var j = 0; j < netherModifiedChunks[i].length; j++) {
+                    result.push(netherModifiedChunks[i][j]);
+                }
             }
         }
     }
@@ -270,115 +287,128 @@ function getChunkBlocks(x) {
     // ajout de terrain si pas de modifs
     if (!isModified) {
         for (var xPos = 0; xPos < 16; xPos++) {
-            // herbe
-            result.push([
-                x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE,
-                1
-            ]);
-            // terre
-            for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <= 20 * BLOCKSIZE; yPos += BLOCKSIZE) {
+            if (isInNether === false) {
+                // herbe
                 result.push([
                     x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
-                    yPos,
-                    2
+                    parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE,
+                    1
                 ]);
+                // terre
+                for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <= 20 * BLOCKSIZE; yPos += BLOCKSIZE) {
+                    result.push([
+                        x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
+                        yPos,
+                        2
+                    ]);
+                }
+                // pierre
+                for (var yPos = parseInt(getYProcedural((x + 16) * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * 10; yPos <= 80 * BLOCKSIZE; yPos += BLOCKSIZE) {
+                    result.push([
+                        x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
+                        yPos,
+                        5
+                    ]);
+                }         
+            } else {
+                // netherrack
+                for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <= 80 * BLOCKSIZE; yPos += BLOCKSIZE) {
+                    result.push([
+                        x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
+                        yPos,
+                        9
+                    ]);
+                }  
             }
-            // pierre
-            for (var yPos = parseInt(getYProcedural((x + 16) * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * 10; yPos <= 80 * BLOCKSIZE; yPos += BLOCKSIZE) {
-                result.push([
-                    x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
-                    yPos,
-                    5
-                ]);
-            }         
         }
-        // arbre
-        //tronc
-        result.push([
-            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE,
-            7
-        ]);
-        result.push([
-            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 2,
-            7
-        ]); 
-        result.push([
-            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
-            7
-        ]);
-        result.push([
-            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
-            7
-        ]);
-        result.push([
-            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
-            8
-        ]);
-        result.push([
-            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
-            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 6,
-            8
-        ]);
-        //tronc + 1 a gauche
-        result.push([
-            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE,
-            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
-            8
-        ]);
-        result.push([
-            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE,
-            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
-            8
-        ]);
-        result.push([
-            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE,
-            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
-            8
-        ]);
-        //tronc + 2 a gauche
-        result.push([
-            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE * 2,
-            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
-            8
-        ]);
-        result.push([
-            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE * 2,
-            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
-            8
-        ]);
-        //tronc + 1 a droite
-        result.push([
-            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE,
-            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
-            8
-        ]);
-        result.push([
-            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE,
-            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
-            8
-        ]);
-        result.push([
-            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE,
-            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
-            8
-        ]);
-        //tronc + 2 a droite
-        result.push([
-            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE * 2,
-            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
-            8
-        ]);
-        result.push([
-            x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE * 2,
-            parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
-            8
-        ]);
+        if (isInNether === false) {
+            // arbre
+            //tronc
+            result.push([
+                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE,
+                7
+            ]);
+            result.push([
+                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 2,
+                7
+            ]); 
+            result.push([
+                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+                7
+            ]);
+            result.push([
+                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+                7
+            ]);
+            result.push([
+                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
+                8
+            ]);
+            result.push([
+                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 6,
+                8
+            ]);
+            //tronc + 1 a gauche
+            result.push([
+                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+                8
+            ]);
+            result.push([
+                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+                8
+            ]);
+            result.push([
+                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
+                8
+            ]);
+            //tronc + 2 a gauche
+            result.push([
+                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE * 2,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+                8
+            ]);
+            result.push([
+                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE - BLOCKSIZE * 2,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+                8
+            ]);
+            //tronc + 1 a droite
+            result.push([
+                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+                8
+            ]);
+            result.push([
+                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+                8
+            ]);
+            result.push([
+                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
+                8
+            ]);
+            //tronc + 2 a droite
+            result.push([
+                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE * 2,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 3,
+                8
+            ]);
+            result.push([
+                x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE + BLOCKSIZE * 2,
+                parseInt(getYProcedural(x * 16 * BLOCKSIZE + parseInt(getXwithSeed(x)) * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
+                8
+            ]);
+        }
     }
     return result;
 }
@@ -386,7 +416,7 @@ function getChunkBlocks(x) {
 function loop() {
     canvas.width = window.innerWidth - 1;
     canvas.height = window.innerHeight - 1;
-
+    
     // calcul la position in-game du curseur
     mouseWorldPosX = mouseScreenPosX - (mouseWorldPosX < 0 ? BLOCKSIZE: 0) + cameraX;
     mouseWorldPosY = mouseScreenPosY - (mouseWorldPosY < 0 ? BLOCKSIZE: 0) + cameraY;
@@ -394,39 +424,59 @@ function loop() {
     // arrondi l'emplacement de la souris sur la grille
     var blockX = parseInt(mouseWorldPosX / BLOCKSIZE) * BLOCKSIZE;
     var blockY = parseInt(mouseWorldPosY / BLOCKSIZE) * BLOCKSIZE;
-
+    
     //deplace la camera
     cameraX += (playerX - canvas.width / 2 - cameraX) / 30;
     cameraY += (playerY - canvas.height / 2 - cameraY) / 30;
     
-    if (!inventory.opened) {
-    //#region PHISIQUES
-    // vertical
-    // sol
-    if (isABloc(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity) && playerYVelocity >= 0 && !isASpecificBlock(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity, 6)) {
-        if (playerYVelocity > 13) {
-            playerLife -= (playerYVelocity - 13) / 2;
-            playerLife -= playerLife % 0.5;
-        } 
-        playerYVelocity = 0;
-    }else {
-        playerYVelocity += GRAVITY_FORCE;
+    //calcule dans quel chunk est le joueur
+    var playerChunk = parseInt(parseInt(playerX / BLOCKSIZE) / 16) - (playerX < 0 ? 1 : 0);
+    
+    //nether
+    if (isASpecificBlock(playerX, playerY, 10) && isInNether === false) {
+        isInNether = true;
+        noise.seed(proceduraleNetherSeed);
+        playerX += 3 * BLOCKSIZE;
+        playerY = getYProcedural(playerX);
+    } else if (isASpecificBlock(playerX, playerY, 10)) {
+        isInNether = false;
+        noise.seed(proceduraleSeed);
+        playerX += 3 * BLOCKSIZE;
+        playerY = getYProcedural(playerX);
     }
     
-    // toit
+    if (!inventory.opened) {
+        //#region PHISIQUES
+        // vertical
+        // sol
+        if (isABloc(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity) && playerYVelocity >= 0 && !isASpecificBlock(playerX, playerY + PLAYER_HEIGHT / 2 + playerYVelocity, 6)) {
+            if (playerYVelocity > 13) {
+                playerLife -= (playerYVelocity - 13) / 2;
+                playerLife -= playerLife % 0.5;
+            } 
+            playerYVelocity = 0;
+        }else {
+            playerYVelocity += GRAVITY_FORCE;
+        }
+        
+        // toit
     if (isABloc(playerX, playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2) && !isASpecificBlock(playerX, playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2, 6) && playerYVelocity <= 0) {
         playerYVelocity = 0;
     }
     playerY += playerYVelocity;
     
     // horizontal
-    if (isRightPressed && (!isABloc(playerX + PLAYER_WIDTH / 2, playerY) || isASpecificBlock(playerX + PLAYER_WIDTH / 2, playerY, 6))) {
+    if (isRightPressed && (!isABloc(playerX + PLAYER_WIDTH / 2, playerY) || isASpecificBlock(playerX + PLAYER_WIDTH / 2, playerY, 6) ||
+    (isASpecificBlock(playerX + PLAYER_WIDTH / 2, playerY, 3) && isASpecificBlock(playerX + PLAYER_WIDTH / 2 + BLOCKSIZE, playerY, 10)) ||
+    isASpecificBlock(playerX + PLAYER_WIDTH / 2, playerY, 10))) {
         playerX += MOVE_SPEED;
     }
-    if  (isLeftPressed && (!isABloc(playerX - PLAYER_WIDTH / 2, playerY) || isASpecificBlock(playerX - PLAYER_WIDTH / 2, playerY, 6)) && playerX - PLAYER_WIDTH / 2 >= 5) {
+    if  (isLeftPressed && (!isABloc(playerX - PLAYER_WIDTH / 2, playerY) || isASpecificBlock(playerX - PLAYER_WIDTH / 2, playerY, 6) ||
+    (isASpecificBlock(playerX - PLAYER_WIDTH / 2, playerY, 3) && isASpecificBlock(playerX - PLAYER_WIDTH / 2 - BLOCKSIZE, playerY, 10)) ||
+    isASpecificBlock(playerX - PLAYER_WIDTH / 2, playerY, 10)) && playerX - PLAYER_WIDTH / 2 >= 5) {
         playerX -= MOVE_SPEED;
     }
-
+    
     // sol zombie
     if (isABloc(zombieX, zombieY + ZOMBIE_HEIGHT + zombieYVelocity) && zombieYVelocity >= 0) {
         zombieYVelocity = 0;
@@ -435,7 +485,7 @@ function loop() {
         zombieYVelocity += GRAVITY_FORCE;
         gravityZombie = true;
     }
-       
+    
     
     // horizontal zombie
     if (zombieX < playerX && (isABloc(zombieX + ZOMBIE_WIDTH, zombieY + ZOMBIE_HEIGHT / 2) || isABloc(zombieX + ZOMBIE_WIDTH, zombieY))) {
@@ -461,17 +511,15 @@ function loop() {
     
     //portail
     if(isClicked && inventory.content[usedHotbarID] === 6) {
-        if (isASpecificBlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE, 3) &&
-        isASpecificBlock(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 2, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 3, 3) &&
-        isASpecificBlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 4, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 + BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 4, 3) &&
-        isASpecificBlock(blockX + BLOCKSIZE / 2 + BLOCKSIZE * 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 3, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 + BLOCKSIZE * 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 2, 3) &&
-        isASpecificBlock(blockX + BLOCKSIZE / 2 + BLOCKSIZE * 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 + BLOCKSIZE, blockY + BLOCKSIZE / 2, 3)) {
-            portalPose[0] = blockX;
-            portalPose[1] = blockY;
-            isAPortal = true;
+        if (isASpecificBlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2 + BLOCKSIZE, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2, 3) &&
+        isASpecificBlock(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 - BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 2, 3) &&
+        isASpecificBlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 3, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 + BLOCKSIZE, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 3, 3) &&
+        isASpecificBlock(blockX + BLOCKSIZE / 2 + BLOCKSIZE * 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE * 2, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 + BLOCKSIZE * 2, blockY + BLOCKSIZE / 2 - BLOCKSIZE, 3) &&
+        isASpecificBlock(blockX + BLOCKSIZE / 2 + BLOCKSIZE * 2, blockY + BLOCKSIZE / 2, 3) && isASpecificBlock(blockX + BLOCKSIZE / 2 + BLOCKSIZE, blockY + BLOCKSIZE / 2 + BLOCKSIZE, 3)) {
+            isANewPortal = true;
         }
     }
-    
+
     //#endregion
     
     //#region DEGATS
@@ -490,60 +538,211 @@ function loop() {
     //#region POSER/CASSER
     // trouve le bon chunk
     var chunk = parseInt(parseInt(blockX / BLOCKSIZE) / 16) - (blockX < 0 ? 1 : 0);
-    var chunkIndex = modifiedChunks.length;
-    for (var i = 0; i < modifiedChunks.length; i++) {
-        if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) == chunk) {
-            chunkIndex = i;
+    var chunkIndex = netherModifiedChunks.length;
+    var netherChunkIndex = netherModifiedChunks.length;
+    if (isInNether === false) {
+        for (var i = 0; i < modifiedChunks.length; i++) {
+            if (parseInt(parseInt(modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (modifiedChunks[i][0][0] < 0 ? 1 : 0) === chunk) {
+                chunkIndex = i;
+            }
+        }
+    } else {
+        for (var i = 0; i < netherModifiedChunks.length; i++) {
+            if (parseInt(parseInt(netherModifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (netherModifiedChunks[i][0][0] < 0 ? 1 : 0) === chunk) {
+                netherChunkIndex = i;
+            }
         }
     }
+
     //poser bloc
-    if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && usedHotbarID != 8) {
-        // si le chunk n'etait pas modifié creer le terrain
-        if (modifiedChunks[chunkIndex] == null) {
-            var terrain = [];
-            for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
-                terrain.push(getChunkBlocks(chunkIndex)[i]);
+    if (isInNether === false) {
+        if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && usedHotbarID != 8) {
+            // si le chunk n'etait pas modifié creer le terrain
+            if (modifiedChunks[chunkIndex] == null) {
+                var terrain = [];
+                for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
+                    terrain.push(getChunkBlocks(chunkIndex)[i]);
+                }
+                modifiedChunks.push([]);
+                for (var i = 0; i < terrain.length; i++) {
+                    modifiedChunks[modifiedChunks.length - 1].push(terrain[i]);
+                }
             }
-            modifiedChunks.push([]);
-            for (var i = 0; i < terrain.length; i++) {
-                modifiedChunks[modifiedChunks.length - 1].push(terrain[i]);
+            // poser
+            if (isABloc(blockX, blockY + BLOCKSIZE * 1.5) || isABloc(blockX, blockY - BLOCKSIZE * 1.5) || isABloc(blockX + BLOCKSIZE * 1.5, blockY) || isABloc(blockX - BLOCKSIZE * 1.5, blockY) ||
+            mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
+                if (chunkIndex == modifiedChunks.length) {
+                    modifiedChunks.push([]);
+                }
+                var newBlock = [blockX, blockY, inventory.content[usedHotbarID], 0];
+                modifiedChunks[chunkIndex].push(newBlock);
             }
         }
-        // poser
-        if (isABloc(blockX, blockY + BLOCKSIZE * 1.5) || isABloc(blockX, blockY - BLOCKSIZE * 1.5) || isABloc(blockX + BLOCKSIZE * 1.5, blockY) || isABloc(blockX - BLOCKSIZE * 1.5, blockY) ||
-        mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
-            if (chunkIndex == modifiedChunks.length) {
-                modifiedChunks.push([]);
+    } else {
+        if (isClicked && !isABloc(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && usedHotbarID != 8) {
+            // si le chunk n'etait pas modifié creer le terrain
+            if (netherModifiedChunks[netherChunkIndex] == null) {
+                var terrain = [];
+                for (var i = 0; i < getChunkBlocks(netherChunkIndex).length; i++) {
+                    terrain.push(getChunkBlocks(netherChunkIndex)[i]);
+                }
+                netherModifiedChunks.push([]);
+                for (var i = 0; i < terrain.length; i++) {
+                    netherModifiedChunks[netherModifiedChunks.length - 1].push(terrain[i]);
+                }
             }
-            var newBlock = [blockX, blockY, inventory.content[usedHotbarID]];
-            modifiedChunks[chunkIndex].push(newBlock);
+            // poser
+            if (isABloc(blockX, blockY + BLOCKSIZE * 1.5) || isABloc(blockX, blockY - BLOCKSIZE * 1.5) || isABloc(blockX + BLOCKSIZE * 1.5, blockY) || isABloc(blockX - BLOCKSIZE * 1.5, blockY) ||
+            mouseScreenPosY >= canvas.height - cameraY * 1.5 || canPlaceAir) {
+                if (netherChunkIndex == netherModifiedChunks.length) {
+                    netherModifiedChunks.push([]);
+                }
+                var newBlock = [blockX, blockY, inventory.content[usedHotbarID], 0];
+                netherModifiedChunks[netherChunkIndex].push(newBlock);
+            }
         }
     }
     
-    //casser bloc
-    if (isRightClicked) {
-        // si le chunk n'etait pas modifié creer le terrain
-        if (modifiedChunks[chunkIndex] == null) {
+    if (isInNether === false) {
+        //place les blocs de portail
+        if (isANewPortal) {
+            var newBlock = [blockX, blockY, 10];
+            modifiedChunks[chunkIndex].push(newBlock);
+            var newBlock = [blockX, blockY - BLOCKSIZE, 10];
+            modifiedChunks[chunkIndex].push(newBlock);
+            var newBlock = [blockX, blockY - BLOCKSIZE * 2, 10];
+            modifiedChunks[chunkIndex].push(newBlock);
+            var newBlock = [blockX + BLOCKSIZE, blockY, 10];
+            modifiedChunks[chunkIndex].push(newBlock);
+            var newBlock = [blockX + BLOCKSIZE, blockY - BLOCKSIZE, 10];
+            modifiedChunks[chunkIndex].push(newBlock);
+            var newBlock = [blockX + BLOCKSIZE, blockY - BLOCKSIZE * 2, 10];
+            modifiedChunks[chunkIndex].push(newBlock);
+        }
+    } else {
+        if (netherModifiedChunks.length === 0) {
+            //place le portail par defaut dans le nether
             var terrain = [];
-            for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
-                terrain.push(getChunkBlocks(chunkIndex)[i]);
+            for (var i = 0; i < getChunkBlocks(playerChunk).length; i++) {
+                terrain.push(getChunkBlocks(playerChunk)[i]);
             }
-            modifiedChunks.push([]);
+            netherModifiedChunks.push([]);
             for (var i = 0; i < terrain.length; i++) {
-                modifiedChunks[modifiedChunks.length - 1].push(terrain[i]);
+                netherModifiedChunks[netherModifiedChunks.length - 1].push(terrain[i]);
+            }
+            // creation des blocs de portail dans le nether
+            //blocs de gauches
+            var portalX = parseInt((playerX - 5 * BLOCKSIZE )/ BLOCKSIZE) * BLOCKSIZE;
+            var newBlock = [portalX, blockY, 10, 0];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            newBlock = [portalX, blockY - BLOCKSIZE, 10, 0];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            newBlock = [portalX, blockY - BLOCKSIZE * 2, 10, 0];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            //blocs de droites
+            newBlock = [portalX + BLOCKSIZE, blockY, 10, 0];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            newBlock = [portalX + BLOCKSIZE, blockY - BLOCKSIZE, 10, 0];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            newBlock = [portalX + BLOCKSIZE, blockY - BLOCKSIZE * 2, 10, 0];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            // creation des blocs d'obsidienne du portail dans le nether
+            newBlock = [portalX, blockY + BLOCKSIZE, 3];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            newBlock = [portalX - BLOCKSIZE, blockY + BLOCKSIZE, 3];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            newBlock = [portalX - BLOCKSIZE, blockY, 3];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            newBlock = [portalX - BLOCKSIZE, blockY - BLOCKSIZE, 3];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            newBlock = [portalX - BLOCKSIZE, blockY - BLOCKSIZE * 2, 3];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            newBlock = [portalX - BLOCKSIZE, blockY - BLOCKSIZE * 3, 3];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            newBlock = [portalX, blockY - BLOCKSIZE * 3, 3];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            newBlock = [portalX + BLOCKSIZE, blockY - BLOCKSIZE * 3, 3];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            newBlock = [portalX + BLOCKSIZE * 2, blockY - BLOCKSIZE * 3, 3];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            newBlock = [portalX + BLOCKSIZE * 2, blockY - BLOCKSIZE * 2, 3];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            newBlock = [portalX + BLOCKSIZE * 2, blockY - BLOCKSIZE, 3];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            newBlock = [portalX + BLOCKSIZE * 2, blockY, 3];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            newBlock = [portalX + BLOCKSIZE * 2, blockY + BLOCKSIZE, 3];
+            netherModifiedChunks[playerChunk].push(newBlock);
+            newBlock = [portalX + BLOCKSIZE, blockY + BLOCKSIZE, 3];
+            netherModifiedChunks[playerChunk].push(newBlock);
+        }
+
+        //place les blocs de portail
+        if (isANewPortal) {
+            var newBlock = [blockX, blockY, 10];
+            netherModifiedChunks[netherChunkIndex].push(newBlock);
+            var newBlock = [blockX, blockY - BLOCKSIZE, 10];
+            netherModifiedChunks[netherChunkIndex].push(newBlock);
+            var newBlock = [blockX, blockY - BLOCKSIZE * 2, 10];
+            netherModifiedChunks[netherChunkIndex].push(newBlock);
+            var newBlock = [blockX + BLOCKSIZE, blockY, 10];
+            netherModifiedChunks[netherChunkIndex].push(newBlock);
+            var newBlock = [blockX + BLOCKSIZE, blockY - BLOCKSIZE, 10];
+            netherModifiedChunks[netherChunkIndex].push(newBlock);
+            var newBlock = [blockX + BLOCKSIZE, blockY - BLOCKSIZE * 2, 10];
+            netherModifiedChunks[netherChunkIndex].push(newBlock);
+        }
+    }
+
+    if (isInNether === false) {
+        //casser bloc
+        if (isRightClicked) {
+            // si le chunk n'etait pas modifié creer le terrain
+            if (modifiedChunks[chunkIndex] == null) {
+                var terrain = [];
+                for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
+                    terrain.push(getChunkBlocks(chunkIndex)[i]);
+                }
+                modifiedChunks.push([]);
+                for (var i = 0; i < terrain.length; i++) {
+                    modifiedChunks[modifiedChunks.length - 1].push(terrain[i]);
+                }
+            }
+            for (var i = 0; i < modifiedChunks[chunkIndex].length; i++) {
+                if (blockX == modifiedChunks[chunkIndex][i][0] && blockY == modifiedChunks[chunkIndex][i][1]) {
+                    modifiedChunks[chunkIndex].splice(i, 1);
+                }
             }
         }
-        for (var i = 0; i < modifiedChunks[chunkIndex].length; i++) {
-            if (blockX == modifiedChunks[chunkIndex][i][0] && blockY == modifiedChunks[chunkIndex][i][1]) {
-                modifiedChunks[chunkIndex].splice(i, 1);
+    } else {
+        //casser bloc
+        if (isRightClicked) {
+            // si le chunk n'etait pas modifié creer le terrain
+            if (netherModifiedChunks[netherChunkIndex] == null) {
+                var terrain = [];
+                for (var i = 0; i < getChunkBlocks(netherChunkIndex).length; i++) {
+                    terrain.push(getChunkBlocks(netherChunkIndex)[i]);
+                }
+                netherModifiedChunks.push([]);
+                for (var i = 0; i < terrain.length; i++) {
+                    netherModifiedChunks[netherModifiedChunks.length - 1].push(terrain[i]);
+                }
+            }
+            for (var i = 0; i < netherModifiedChunks[netherChunkIndex].length; i++) {
+                if (blockX == netherModifiedChunks[netherChunkIndex][i][0] && blockY == netherModifiedChunks[netherChunkIndex][i][1]) {
+                    netherModifiedChunks[netherChunkIndex].splice(i, 1);
+                }
             }
         }
     }
 
-    //compte les image de l'animation du portail
+    //compte les image des animations
     if (animationFrameCounterSlower === 2) {
         animationFrameCounterSlower = 0;
-
+        borderFrameCounter++;
+        if (borderFrameCounter >= 1000000) {
+            borderFrameCounter = 0;
+        }
         if(animationFrameCounter === 31) {
             animationFrameCounter = 0;
         } else {
@@ -567,12 +766,11 @@ function loop() {
         }
     }
     //#endregion
-
+    
     //#region AFFICHAGE
     // clear le canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
     
-    var playerChunk = parseInt(parseInt(playerX / BLOCKSIZE) / 16) - (playerX < 0 ? 1 : 0);
     for (var i = playerChunk - renderDistance; i <= playerChunk + renderDistance ; i++) {
         var blocks = getChunkBlocks(i);
         for (var j = 0; j < blocks.length; j++) {
@@ -590,6 +788,8 @@ function loop() {
             // dessine les blocs
             if (blocks[j][2] === 6) {
                 context.drawImage(fireAnimationFrames[animationFrameCounter], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);  
+            } else if (blocks[j][2] === 10) {
+                context.drawImage(portalAnimationFrames[animationFrameCounter], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);  
             } else {
                 context.drawImage(blockTextures[blocks[j][2]], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);
             }
@@ -602,16 +802,6 @@ function loop() {
         for (var i = -borderFrameCounter * 3 - canvas.height * 5; i < canvas.height + playerY; i += BLOCKSIZE) {
             context.drawImage(forcefield, -BLOCKSIZE - cameraX, i - cameraY, BLOCKSIZE, BLOCKSIZE);
         }
-    }
-    
-    //dessine les blocs de portail
-    if (isAPortal) {
-        context.drawImage(portalAnimationFrames[animationFrameCounter], portalPose[0] - cameraX, portalPose[1] - BLOCKSIZE - cameraY, BLOCKSIZE, BLOCKSIZE);
-        context.drawImage(portalAnimationFrames[animationFrameCounter], portalPose[0] - cameraX, portalPose[1] - BLOCKSIZE * 2 - cameraY, BLOCKSIZE, BLOCKSIZE);
-        context.drawImage(portalAnimationFrames[animationFrameCounter], portalPose[0] - cameraX, portalPose[1] - BLOCKSIZE * 3 - cameraY, BLOCKSIZE, BLOCKSIZE);
-        context.drawImage(portalAnimationFrames[animationFrameCounter], portalPose[0] + BLOCKSIZE - cameraX, portalPose[1] - BLOCKSIZE - cameraY, BLOCKSIZE, BLOCKSIZE);
-        context.drawImage(portalAnimationFrames[animationFrameCounter], portalPose[0] + BLOCKSIZE - cameraX, portalPose[1] - BLOCKSIZE * 2 - cameraY, BLOCKSIZE, BLOCKSIZE);
-        context.drawImage(portalAnimationFrames[animationFrameCounter], portalPose[0] + BLOCKSIZE - cameraX, portalPose[1] - BLOCKSIZE * 3 - cameraY, BLOCKSIZE, BLOCKSIZE);
     }
 
     //dessine le zombie
@@ -720,7 +910,7 @@ function loop() {
     isClicked = false;
     isRightClicked = false;
     isZombieBlockedOnSide = false;
-    isAFire = 0;
+    isANewPortal = false;
     requestAnimationFrame(loop);
 }
 //#region INPUTS
