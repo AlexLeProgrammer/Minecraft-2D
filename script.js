@@ -514,7 +514,8 @@ function loop() {
         //#region PHISIQUES
         // vertical
         // sol
-        if (isABlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + worldDatas.playerYVelocity) && worldDatas.playerYVelocity >= 0 && !isASpecificBlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + worldDatas.playerYVelocity, 6)) {
+        if (isABlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + worldDatas.playerYVelocity) &&
+        !isASpecificBlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + worldDatas.playerYVelocity, 10) && worldDatas.playerYVelocity >= 0 && !isASpecificBlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + worldDatas.playerYVelocity, 6)) {
             if (worldDatas.playerYVelocity > 13) {
                 worldDatas.playerLife -= (worldDatas.playerYVelocity - 13) / 2;
                 worldDatas.playerLife -= worldDatas.playerLife % 0.5;
@@ -525,18 +526,20 @@ function loop() {
         }
         
         // toit
-    if (isABlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2) && !isASpecificBlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2, 6) && worldDatas.playerYVelocity <= 0) {
+    if (isABlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2) &&
+    !isASpecificBlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2, 6) &&
+    !isASpecificBlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2, 10) && worldDatas.playerYVelocity <= 0) {
         worldDatas.playerYVelocity = 0;
     }
     worldDatas.playerY += worldDatas.playerYVelocity;
     
     // horizontal
-    if (isRightPressed && (!isABlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY) || isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY, 6) ||
+    if (isRightPressed && (!isABlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY) || isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY, 6) || isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY, 10) ||
     (isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY, 3) && isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2 + BLOCKSIZE, worldDatas.playerY, 11)) ||
     isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY, 11))) {
         worldDatas.playerX += MOVE_SPEED;
     }
-    if  (isLeftPressed && (!isABlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY) || isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY, 6) ||
+    if  (isLeftPressed && (!isABlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY) || isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY, 6) || isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY, 10) ||
     (isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY, 3) && isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2 - BLOCKSIZE, worldDatas.playerY, 11)) ||
     isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY, 11)) && worldDatas.playerX - PLAYER_WIDTH / 2 >= 5) {
         worldDatas.playerX -= MOVE_SPEED;
@@ -749,17 +752,17 @@ function loop() {
 
         //place les blocs de portail
         if (isANewPortal) {
-            var newBlock = [blockX, blockY, 10];
+            var newBlock = [blockX, blockY, 11];
             worldDatas.netherModifiedChunks[netherChunkIndex].push(newBlock);
-            var newBlock = [blockX, blockY - BLOCKSIZE, 10];
+            var newBlock = [blockX, blockY - BLOCKSIZE, 11];
             worldDatas.netherModifiedChunks[netherChunkIndex].push(newBlock);
-            var newBlock = [blockX, blockY - BLOCKSIZE * 2, 10];
+            var newBlock = [blockX, blockY - BLOCKSIZE * 2, 11];
             worldDatas.netherModifiedChunks[netherChunkIndex].push(newBlock);
-            var newBlock = [blockX + BLOCKSIZE, blockY, 10];
+            var newBlock = [blockX + BLOCKSIZE, blockY, 11];
             worldDatas.netherModifiedChunks[netherChunkIndex].push(newBlock);
-            var newBlock = [blockX + BLOCKSIZE, blockY - BLOCKSIZE, 10];
+            var newBlock = [blockX + BLOCKSIZE, blockY - BLOCKSIZE, 11];
             worldDatas.netherModifiedChunks[netherChunkIndex].push(newBlock);
-            var newBlock = [blockX + BLOCKSIZE, blockY - BLOCKSIZE * 2, 10];
+            var newBlock = [blockX + BLOCKSIZE, blockY - BLOCKSIZE * 2, 11];
             worldDatas.netherModifiedChunks[netherChunkIndex].push(newBlock);
         }
     }
