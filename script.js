@@ -114,8 +114,34 @@ fireAnimationFrames[29].src = 'sprites/blocks/fire_animation_frames/fire_ (30).p
 fireAnimationFrames[30].src = 'sprites/blocks/fire_animation_frames/fire_ (31).png';
 fireAnimationFrames[31].src = 'sprites/blocks/fire_animation_frames/fire_ (32).png';
 
+//textures de la lave
+var lavaAnimationFrames = [];
+for (var i = 0; i < 20; i++) {
+    lavaAnimationFrames.push(new Image());
+}
+lavaAnimationFrames[0].src = 'sprites/blocks/lava_animation_frames/lava_ (1).png';
+lavaAnimationFrames[1].src = 'sprites/blocks/lava_animation_frames/lava_ (2).png';
+lavaAnimationFrames[2].src = 'sprites/blocks/lava_animation_frames/lava_ (3).png';
+lavaAnimationFrames[3].src = 'sprites/blocks/lava_animation_frames/lava_ (4).png';
+lavaAnimationFrames[4].src = 'sprites/blocks/lava_animation_frames/lava_ (5).png';
+lavaAnimationFrames[5].src = 'sprites/blocks/lava_animation_frames/lava_ (6).png';
+lavaAnimationFrames[6].src = 'sprites/blocks/lava_animation_frames/lava_ (7).png';
+lavaAnimationFrames[7].src = 'sprites/blocks/lava_animation_frames/lava_ (8).png';
+lavaAnimationFrames[8].src = 'sprites/blocks/lava_animation_frames/lava_ (9).png';
+lavaAnimationFrames[9].src = 'sprites/blocks/lava_animation_frames/lava_ (10).png';
+lavaAnimationFrames[10].src = 'sprites/blocks/lava_animation_frames/lava_ (11).png';
+lavaAnimationFrames[11].src = 'sprites/blocks/lava_animation_frames/lava_ (12).png';
+lavaAnimationFrames[12].src = 'sprites/blocks/lava_animation_frames/lava_ (13).png';
+lavaAnimationFrames[13].src = 'sprites/blocks/lava_animation_frames/lava_ (14).png';
+lavaAnimationFrames[14].src = 'sprites/blocks/lava_animation_frames/lava_ (15).png';
+lavaAnimationFrames[15].src = 'sprites/blocks/lava_animation_frames/lava_ (16).png';
+lavaAnimationFrames[16].src = 'sprites/blocks/lava_animation_frames/lava_ (17).png';
+lavaAnimationFrames[17].src = 'sprites/blocks/lava_animation_frames/lava_ (18).png';
+lavaAnimationFrames[18].src = 'sprites/blocks/lava_animation_frames/lava_ (19).png';
+lavaAnimationFrames[19].src = 'sprites/blocks/lava_animation_frames/lava_ (20).png';
+
 //textures des blocs
-var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image()];
+var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image()];
 blockTextures[0].src = 'sprites/blocks/oak_plank.png';
 blockTextures[1].src = 'sprites/blocks/grass.png';
 blockTextures[2].src = 'sprites/blocks/dirt.png';
@@ -126,7 +152,8 @@ blockTextures[6].src = 'sprites/Items/flint_and_steel.png';
 blockTextures[7].src = 'sprites/blocks/oak_log.png';
 blockTextures[8].src = 'sprites/blocks/oak_leaves.png';
 blockTextures[9].src = 'sprites/blocks/netherrack.png';
-blockTextures[10].src = 'sprites/blocks/portal_animation_frames/portal_ (1).png';
+blockTextures[10].src = 'sprites/Items/lava_bucket.png';
+blockTextures[11].src = 'sprites/blocks/portal_animation_frames/portal_ (1).png';
 
 //#endregion
 
@@ -160,8 +187,9 @@ var isANewPortal = false;
 
 //animation
 var animationFrameCounter = 0;
-var animationFrameCounterSlower = 0;
 var borderFrameCounter = 0;
+var lavaFrameCounter = 0;
+var lavaFrameWay = 1;
 
 // gui
 const GUI_SIZE = 50;
@@ -204,8 +232,6 @@ var worldDatas = {
     }
 }
 
-noise.seed(worldDatas.proceduraleSeed);
-
 //#region CHARGEMENT DES DONNEES
 if (localStorage.getItem("datas") != null) {
     worldDatas = JSON.parse(localStorage.getItem("datas"));
@@ -221,6 +247,10 @@ if (localStorage.getItem("datas") != null) {
     worldDatas.proceduraleSeed = Math.random();
     worldDatas.proceduraleNetherSeed = Math.random();
 }
+
+// utilise la graine avec la fonction de bruit perlin
+noise.seed(worldDatas.proceduraleSeed);
+
 //#endregion
 
 //detecte si il y a un bloc a des coordonnees precises
@@ -269,7 +299,7 @@ function getXwithSeed(x) {
     return result;
 }
 
-worldDatas.playerY = parseInt(getYProcedural(525) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE;
+worldDatas.playerY = parseInt(getYProcedural(525) / BLOCKSIZE) * BLOCKSIZE;
 
 function getChunkBlocks(x) {
     var result = [];
@@ -323,13 +353,23 @@ function getChunkBlocks(x) {
                 }         
             } else {
                 // netherrack
-                for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <= 80 * BLOCKSIZE; yPos += BLOCKSIZE) {
+                for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <=  80 * BLOCKSIZE; yPos += BLOCKSIZE) {
                     result.push([
                         x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
                         yPos,
                         9
                     ]);
-                }  
+                } 
+                // lave
+                if (parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE >= 100) {
+                    for (var yPos = 100; yPos <=  parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE; yPos += BLOCKSIZE) {
+                        result.push([
+                            x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
+                            yPos,
+                            10
+                        ]);
+                    } 
+                }
             }
         }
         if (worldDatas.isInNether === false) {
@@ -431,6 +471,12 @@ function getChunkBlocks(x) {
     return result;
 }
 
+var reseted = false;
+function resetWorld() {
+    reseted = true;
+    localStorage.clear();
+}
+
 function loop() {
     canvas.width = window.innerWidth - 1;
     canvas.height = window.innerHeight - 1;
@@ -451,12 +497,12 @@ function loop() {
     var playerChunk = parseInt(parseInt(worldDatas.playerX / BLOCKSIZE) / 16) - (worldDatas.playerX < 0 ? 1 : 0);
     
     //nether
-    if (isASpecificBlock(worldDatas.playerX, worldDatas.playerY, 10) && worldDatas.isInNether === false) {
+    if (isASpecificBlock(worldDatas.playerX, worldDatas.playerY, 11) && worldDatas.isInNether === false) {
         worldDatas.isInNether = true;
         noise.seed(worldDatas.proceduraleNetherSeed);
         worldDatas.playerX += 3 * BLOCKSIZE;
         worldDatas.playerY = getYProcedural(worldDatas.playerX);
-    } else if (isASpecificBlock(worldDatas.playerX, worldDatas.playerY, 10)) {
+    } else if (isASpecificBlock(worldDatas.playerX, worldDatas.playerY, 11)) {
         worldDatas.isInNether = false;
         noise.seed(worldDatas
             .proceduraleSeed);
@@ -486,13 +532,13 @@ function loop() {
     
     // horizontal
     if (isRightPressed && (!isABlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY) || isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY, 6) ||
-    (isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY, 3) && isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2 + BLOCKSIZE, worldDatas.playerY, 10)) ||
-    isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY, 10))) {
+    (isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY, 3) && isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2 + BLOCKSIZE, worldDatas.playerY, 11)) ||
+    isASpecificBlock(worldDatas.playerX + PLAYER_WIDTH / 2, worldDatas.playerY, 11))) {
         worldDatas.playerX += MOVE_SPEED;
     }
     if  (isLeftPressed && (!isABlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY) || isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY, 6) ||
-    (isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY, 3) && isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2 - BLOCKSIZE, worldDatas.playerY, 10)) ||
-    isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY, 10)) && worldDatas.playerX - PLAYER_WIDTH / 2 >= 5) {
+    (isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY, 3) && isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2 - BLOCKSIZE, worldDatas.playerY, 11)) ||
+    isASpecificBlock(worldDatas.playerX - PLAYER_WIDTH / 2, worldDatas.playerY, 11)) && worldDatas.playerX - PLAYER_WIDTH / 2 >= 5) {
         worldDatas.playerX -= MOVE_SPEED;
     }
     
@@ -575,7 +621,7 @@ function loop() {
 
     //poser bloc
     if (worldDatas.isInNether === false) {
-        if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && usedHotbarID != 8) {
+        if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2)) {
             // si le chunk n'etait pas modifié creer le terrain
             if (worldDatas.modifiedChunks[chunkIndex] == null) {
                 var terrain = [];
@@ -629,17 +675,17 @@ function loop() {
     if (worldDatas.isInNether === false) {
         //place les blocs de portail
         if (isANewPortal) {
-            var newBlock = [blockX, blockY, 10];
+            var newBlock = [blockX, blockY, 11];
             worldDatas.modifiedChunks[chunkIndex].push(newBlock);
-            var newBlock = [blockX, blockY - BLOCKSIZE, 10];
+            var newBlock = [blockX, blockY - BLOCKSIZE, 11];
             worldDatas.modifiedChunks[chunkIndex].push(newBlock);
-            var newBlock = [blockX, blockY - BLOCKSIZE * 2, 10];
+            var newBlock = [blockX, blockY - BLOCKSIZE * 2, 11];
             worldDatas.modifiedChunks[chunkIndex].push(newBlock);
-            var newBlock = [blockX + BLOCKSIZE, blockY, 10];
+            var newBlock = [blockX + BLOCKSIZE, blockY, 11];
             worldDatas.modifiedChunks[chunkIndex].push(newBlock);
-            var newBlock = [blockX + BLOCKSIZE, blockY - BLOCKSIZE, 10];
+            var newBlock = [blockX + BLOCKSIZE, blockY - BLOCKSIZE, 11];
             worldDatas.modifiedChunks[chunkIndex].push(newBlock);
-            var newBlock = [blockX + BLOCKSIZE, blockY - BLOCKSIZE * 2, 10];
+            var newBlock = [blockX + BLOCKSIZE, blockY - BLOCKSIZE * 2, 11];
             worldDatas.modifiedChunks[chunkIndex].push(newBlock);
         }
     } else {
@@ -655,48 +701,49 @@ function loop() {
             }
             // creation des blocs de portail dans le nether
             //blocs de gauches
-            var portalX = parseInt((worldDatas.playerX - 5 * BLOCKSIZE )/ BLOCKSIZE) * BLOCKSIZE;
-            var newBlock = [portalX, blockY, 10, 0];
+            var portalX = parseInt((worldDatas.playerX - 4 * BLOCKSIZE )/ BLOCKSIZE) * BLOCKSIZE;
+            var portalY = parseInt(getYProcedural(portalX) / BLOCKSIZE) * BLOCKSIZE
+            var newBlock = [portalX, portalY, 11, 0];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
-            newBlock = [portalX, blockY - BLOCKSIZE, 10, 0];
+            newBlock = [portalX, portalY - BLOCKSIZE, 11, 0];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
-            newBlock = [portalX, blockY - BLOCKSIZE * 2, 10, 0];
+            newBlock = [portalX, portalY - BLOCKSIZE * 2, 11, 0];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             //blocs de droites
-            newBlock = [portalX + BLOCKSIZE, blockY, 10, 0];
+            newBlock = [portalX + BLOCKSIZE, portalY, 11, 0];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
-            newBlock = [portalX + BLOCKSIZE, blockY - BLOCKSIZE, 10, 0];
+            newBlock = [portalX + BLOCKSIZE, portalY - BLOCKSIZE, 11, 0];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
-            newBlock = [portalX + BLOCKSIZE, blockY - BLOCKSIZE * 2, 10, 0];
+            newBlock = [portalX + BLOCKSIZE, portalY - BLOCKSIZE * 2, 11, 0];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
             // creation des blocs d'obsidienne du portail dans le nether
-            newBlock = [portalX, blockY + BLOCKSIZE, 3];
+            newBlock = [portalX, portalY + BLOCKSIZE, 3];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
-            newBlock = [portalX - BLOCKSIZE, blockY + BLOCKSIZE, 3];
+            newBlock = [portalX - BLOCKSIZE, portalY + BLOCKSIZE, 3];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
-            newBlock = [portalX - BLOCKSIZE, blockY, 3];
+            newBlock = [portalX - BLOCKSIZE, portalY, 3];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
-            newBlock = [portalX - BLOCKSIZE, blockY - BLOCKSIZE, 3];
+            newBlock = [portalX - BLOCKSIZE, portalY - BLOCKSIZE, 3];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
-            newBlock = [portalX - BLOCKSIZE, blockY - BLOCKSIZE * 2, 3];
+            newBlock = [portalX - BLOCKSIZE, portalY - BLOCKSIZE * 2, 3];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
-            newBlock = [portalX - BLOCKSIZE, blockY - BLOCKSIZE * 3, 3];
+            newBlock = [portalX - BLOCKSIZE, portalY - BLOCKSIZE * 3, 3];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
-            newBlock = [portalX, blockY - BLOCKSIZE * 3, 3];
+            newBlock = [portalX, portalY - BLOCKSIZE * 3, 3];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
-            newBlock = [portalX + BLOCKSIZE, blockY - BLOCKSIZE * 3, 3];
+            newBlock = [portalX + BLOCKSIZE, portalY - BLOCKSIZE * 3, 3];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
-            newBlock = [portalX + BLOCKSIZE * 2, blockY - BLOCKSIZE * 3, 3];
+            newBlock = [portalX + BLOCKSIZE * 2, portalY - BLOCKSIZE * 3, 3];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
-            newBlock = [portalX + BLOCKSIZE * 2, blockY - BLOCKSIZE * 2, 3];
+            newBlock = [portalX + BLOCKSIZE * 2, portalY - BLOCKSIZE * 2, 3];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
-            newBlock = [portalX + BLOCKSIZE * 2, blockY - BLOCKSIZE, 3];
+            newBlock = [portalX + BLOCKSIZE * 2, portalY - BLOCKSIZE, 3];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
-            newBlock = [portalX + BLOCKSIZE * 2, blockY, 3];
+            newBlock = [portalX + BLOCKSIZE * 2, portalY, 3];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
-            newBlock = [portalX + BLOCKSIZE * 2, blockY + BLOCKSIZE, 3];
+            newBlock = [portalX + BLOCKSIZE * 2, portalY + BLOCKSIZE, 3];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
-            newBlock = [portalX + BLOCKSIZE, blockY + BLOCKSIZE, 3];
+            newBlock = [portalX + BLOCKSIZE, portalY + BLOCKSIZE, 3];
             worldDatas.netherModifiedChunks[playerChunk].push(newBlock);
         }
 
@@ -759,46 +806,41 @@ function loop() {
         }
     }
 
-    //compte les image des animations
-    if (animationFrameCounterSlower === 2) {
-        animationFrameCounterSlower = 0;
-        borderFrameCounter++;
-        if (borderFrameCounter >= 1000000) {
-            borderFrameCounter = 0;
-        }
-        if(animationFrameCounter === 31) {
-            animationFrameCounter = 0;
-        } else {
-            animationFrameCounter++;
-        }
-    } else {
-        animationFrameCounterSlower++;
-    }
     //#endregion
-    }
+}
 
-    //#region INVENTAIRE
-    if (worldDatas.inventory.opened) {
-        var cellX = parseInt((mouseScreenPosX - canvas.width / 2 + GUI_SIZE * 4.6) / GUI_SIZE) - ((mouseScreenPosX - canvas.width / 2 + GUI_SIZE * 4.6) < 0 ? 1 : 0);
-        var cellY = parseInt((mouseScreenPosY - canvas.height / 2) / GUI_SIZE) - ((mouseScreenPosY - canvas.height / 2) < 0 ? 1 : 0);
-        var cellI = cellX + (3 - cellY) * 9;
-        if (isClicked && cellX >= 0 && cellX <= 8 && cellY >= 0 && cellY <= 3) {
-            var wasInMouse = worldDatas.inventory.inMouse;
-            worldDatas.inventory.inMouse = worldDatas.inventory.content[cellI];
-            worldDatas.inventory.content[cellI] = wasInMouse;
-        }
+//#region INVENTAIRE
+if (worldDatas.inventory.opened) {
+    var cellX = parseInt((mouseScreenPosX - canvas.width / 2 + GUI_SIZE * 4.6) / GUI_SIZE) - ((mouseScreenPosX - canvas.width / 2 + GUI_SIZE * 4.6) < 0 ? 1 : 0);
+    var cellY = parseInt((mouseScreenPosY - canvas.height / 2) / GUI_SIZE) - ((mouseScreenPosY - canvas.height / 2) < 0 ? 1 : 0);
+    var cellI = cellX + (3 - cellY) * 9;
+    if (isClicked && cellX >= 0 && cellX <= 8 && cellY >= 0 && cellY <= 3) {
+        var wasInMouse = worldDatas.inventory.inMouse;
+        worldDatas.inventory.inMouse = worldDatas.inventory.content[cellI];
+        worldDatas.inventory.content[cellI] = wasInMouse;
     }
-    //#endregion
-    
-    //#region AFFICHAGE
-    // clear le canvas
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    
-    for (var i = playerChunk - renderDistance; i <= playerChunk + renderDistance ; i++) {
-        var blocks = getChunkBlocks(i);
-        for (var j = 0; j < blocks.length; j++) {
-            //gere le sable
-            if (blocks[j][2] === 4) {
+}
+//#endregion
+
+//#region AFFICHAGE
+// clear le canvas
+context.clearRect(0, 0, canvas.width, canvas.height);
+
+//compte les image des animations
+animationFrameCounter++;
+borderFrameCounter++;
+if (borderFrameCounter >= 1000000) {
+    borderFrameCounter = 0;
+}
+if ((parseInt(lavaFrameCounter / 8) === 0 && lavaFrameWay === -1) || (parseInt(lavaFrameCounter / 8) === lavaAnimationFrames.length - 1 && lavaFrameWay === 1)) {
+    lavaFrameWay *= -1;
+}
+lavaFrameCounter += lavaFrameWay;
+for (var i = playerChunk - renderDistance; i <= playerChunk + renderDistance ; i++) {
+    var blocks = getChunkBlocks(i);
+    for (var j = 0; j < blocks.length; j++) {
+        //gere le sable
+        if (blocks[j][2] === 4) {
                 if (isABlock(blocks[j][0] + 1, blocks[j][1] + BLOCKSIZE + 1 + blocks[j][3])) {
                     blocks[j][3] = 0;
                     blocks[j][0] = parseInt(blocks[j][0] / BLOCKSIZE) * BLOCKSIZE;
@@ -810,9 +852,11 @@ function loop() {
             }
             // dessine les blocs
             if (blocks[j][2] === 6) {
-                context.drawImage(fireAnimationFrames[animationFrameCounter], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);  
+                context.drawImage(fireAnimationFrames[parseInt(animationFrameCounter / 3) % 31], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);  
+            } else if (blocks[j][2] === 11) {
+                context.drawImage(portalAnimationFrames[parseInt(animationFrameCounter / 3) % 31], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);  
             } else if (blocks[j][2] === 10) {
-                context.drawImage(portalAnimationFrames[animationFrameCounter], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);  
+                context.drawImage(lavaAnimationFrames[parseInt(lavaFrameCounter / 8)], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);  
             } else {
                 context.drawImage(blockTextures[blocks[j][2]], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);
             }
@@ -822,7 +866,7 @@ function loop() {
 
     //dessine la limite du monde
     if (playerChunk <= renderDistance) {
-        for (var i = -borderFrameCounter * 3 - canvas.height * 5; i < canvas.height + worldDatas.playerY; i += BLOCKSIZE) {
+        for (var i = -borderFrameCounter - canvas.height * 5; i < canvas.height + worldDatas.playerY; i += BLOCKSIZE) {
             context.drawImage(forcefield, -BLOCKSIZE - cameraX, i - cameraY, BLOCKSIZE, BLOCKSIZE);
         }
     }
@@ -931,7 +975,7 @@ function loop() {
     //#endregion
 
     //#region SAUVEGARDE
-    localStorage.setItem("datas", JSON.stringify(worldDatas));
+    if (!reseted) {localStorage.setItem("datas", JSON.stringify(worldDatas));}
     //#endregion
 
     isClicked = false;
