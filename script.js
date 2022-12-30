@@ -246,6 +246,9 @@ if (localStorage.getItem("datas") != null) {
     // genere la graine
     worldDatas.proceduraleSeed = Math.random();
     worldDatas.proceduraleNetherSeed = Math.random();
+
+    //genere la position y du joueur
+    worldDatas.playerY = parseInt(getYProcedural(525) / BLOCKSIZE) * BLOCKSIZE;
 }
 
 // utilise la graine avec la fonction de bruit perlin
@@ -298,8 +301,6 @@ function getXwithSeed(x) {
 
     return result;
 }
-
-worldDatas.playerY = parseInt(getYProcedural(525) / BLOCKSIZE) * BLOCKSIZE;
 
 function getChunkBlocks(x) {
     var result = [];
