@@ -625,7 +625,7 @@ function loop() {
 
     //poser bloc
     if (worldDatas.isInNether === false) {
-        if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2)) {
+        if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && worldDatas.inventory.content[usedHotbarID] != null) {
             // si le chunk n'etait pas modifié creer le terrain
             if (worldDatas.modifiedChunks[chunkIndex] == null) {
                 var terrain = [];
@@ -650,7 +650,7 @@ function loop() {
             }
         }
     } else {
-        if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2)) {
+        if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && worldDatas.inventory.content[usedHotbarID] != null) {
             // si le chunk n'etait pas modifié creer le terrain
             if (worldDatas.netherModifiedChunks[netherChunkIndex] == null) {
                 var terrain = [];
@@ -857,10 +857,10 @@ for (var i = playerChunk - renderDistance; i <= playerChunk + renderDistance ; i
             // dessine les blocs
             if (blocks[j][2] === 6) {
                 context.drawImage(fireAnimationFrames[parseInt(animationFrameCounter / 3) % 31], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);  
-            } else if (blocks[j][2] === 11) {
-                context.drawImage(portalAnimationFrames[parseInt(animationFrameCounter / 3) % 31], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);  
             } else if (blocks[j][2] === 10) {
                 context.drawImage(lavaAnimationFrames[parseInt(lavaFrameCounter / 8)], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);  
+            } else if (blocks[j][2] === 11) {
+                context.drawImage(portalAnimationFrames[parseInt(animationFrameCounter / 3) % 31], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);  
             } else {
                 context.drawImage(blockTextures[blocks[j][2]], blocks[j][0] - cameraX, blocks[j][1] - cameraY, BLOCKSIZE, BLOCKSIZE);
             }
