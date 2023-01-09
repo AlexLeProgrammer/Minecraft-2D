@@ -248,7 +248,7 @@ if (localStorage.getItem("datas") != null) {
     worldDatas.proceduraleNetherSeed = Math.random();
 
     //genere la position y du joueur
-    worldDatas.playerY = parseInt(getYProcedural(525) / BLOCKSIZE) * BLOCKSIZE;
+    worldDatas.playerY = parseInt(getYProcedural(525) / BLOCKSIZE) * BLOCKSIZE - PLAYER_HEIGHT / 2;
 }
 
 // utilise la graine avec la fonction de bruit perlin
