@@ -638,10 +638,10 @@ function loop() {
                 }
             }
             // poser
-            if ((isABlock(blockX, blockY + BLOCKSIZE * 1.5) && !isASpecificBlock(blockX, blockY + BLOCKSIZE * 1.5, 6)) ||
-            (isABlock(blockX, blockY - BLOCKSIZE * 1.5) && !isASpecificBlock(blockX, blockY - BLOCKSIZE * 1.5, 6)) ||
-            (isABlock(blockX + BLOCKSIZE * 1.5, blockY) && !isASpecificBlock(blockX + BLOCKSIZE * 1.5, blockY, 6)) ||
-            (isABlock(blockX - BLOCKSIZE * 1.5, blockY) && !isASpecificBlock(blockX - BLOCKSIZE * 1.5, blockY, 6)) || canPlaceAir) {
+            if ((isABlock(blockX + BLOCKSIZE * 0.5, blockY + BLOCKSIZE * 1.5) && !isASpecificBlock(blockX + BLOCKSIZE * 0.5, blockY + BLOCKSIZE * 1.5, 6)) ||
+            (isABlock(blockX + BLOCKSIZE * 0.5, blockY - BLOCKSIZE * 0.5) && !isASpecificBlock(blockX + BLOCKSIZE * 0.5, blockY - BLOCKSIZE * 0.5, 6)) ||
+            (isABlock(blockX + BLOCKSIZE * 1.5, blockY + BLOCKSIZE * 0.5) && !isASpecificBlock(blockX + BLOCKSIZE * 1.5, blockY + BLOCKSIZE * 0.5, 6)) ||
+            (isABlock(blockX - BLOCKSIZE * 0.5, blockY + BLOCKSIZE * 0.5) && !isASpecificBlock(blockX - BLOCKSIZE * 0.5, blockY + BLOCKSIZE * 0.5, 6)) || canPlaceAir) {
                 if (chunkIndex == worldDatas.modifiedChunks.length) {
                     worldDatas.modifiedChunks.push([]);
                 }
