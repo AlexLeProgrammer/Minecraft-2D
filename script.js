@@ -5,7 +5,7 @@ var context = canvas.getContext('2d');
 
 //constantes
 const BLOCKSIZE = 50;
-const GRAVITY_FORCE = 0.1;
+const GRAVITY_FORCE = 0.5;
 const JUMP_FORCE = 9.5;
 const ZOMBIE_JUMP_FORCE = 10;
 const MOVE_SPEED = 3;
@@ -141,7 +141,8 @@ lavaAnimationFrames[18].src = 'sprites/blocks/lava_animation_frames/lava_ (19).p
 lavaAnimationFrames[19].src = 'sprites/blocks/lava_animation_frames/lava_ (20).png';
 
 //textures des blocs
-var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image()];
+var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Image(), new Image(),
+new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image()];
 blockTextures[0].src = 'sprites/blocks/oak_plank.png';
 blockTextures[1].src = 'sprites/blocks/grass.png';
 blockTextures[2].src = 'sprites/blocks/dirt.png';
@@ -154,6 +155,7 @@ blockTextures[8].src = 'sprites/blocks/oak_leaves.png';
 blockTextures[9].src = 'sprites/blocks/netherrack.png';
 blockTextures[10].src = 'sprites/Items/lava_bucket.png';
 blockTextures[11].src = 'sprites/blocks/portal_animation_frames/portal_ (1).png';
+blockTextures[12].src = 'sprites/blocks/bedrock.png';
 
 //#endregion
 
@@ -345,13 +347,19 @@ function getChunkBlocks(x) {
                     ]);
                 }
                 // pierre
-                for (var yPos = parseInt(getYProcedural((x + 64) * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * 5; yPos <= 80 * BLOCKSIZE; yPos += BLOCKSIZE) {
+                for (var yPos = parseInt(getYProcedural((x + 64) * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * 5; yPos <= 60 * BLOCKSIZE; yPos += BLOCKSIZE) {
                     result.push([
                         x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
                         yPos,
                         5
                     ]);
-                }  
+                }
+                // bedrock
+                result.push([
+                    x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
+                    61 * BLOCKSIZE,
+                    12
+                ]);
             } else {
                 // netherrack
                 for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <=  80 * BLOCKSIZE; yPos += BLOCKSIZE) {
@@ -820,7 +828,7 @@ function loop() {
                 }
             }
             for (var i = 0; i < worldDatas.modifiedChunks[chunkIndex].length; i++) {
-                if (blockX == worldDatas.modifiedChunks[chunkIndex][i][0] && blockY == worldDatas.modifiedChunks[chunkIndex][i][1]) {
+                if (blockX == worldDatas.modifiedChunks[chunkIndex][i][0] && blockY == worldDatas.modifiedChunks[chunkIndex][i][1] && worldDatas.modifiedChunks[chunkIndex][i][2] != 12) {
                     worldDatas.modifiedChunks[chunkIndex].splice(i, 1);
                 }
             }
