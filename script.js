@@ -5,7 +5,7 @@ var context = canvas.getContext('2d');
 
 //constantes
 const BLOCKSIZE = 50;
-const GRAVITY_FORCE = 0.5;
+const GRAVITY_FORCE = 0.1;
 const JUMP_FORCE = 9.5;
 const ZOMBIE_JUMP_FORCE = 10;
 const MOVE_SPEED = 3;
@@ -337,7 +337,7 @@ function getChunkBlocks(x) {
                     1
                 ]);
                 // terre
-                for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <= 20 * BLOCKSIZE; yPos += BLOCKSIZE) {
+                for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <= 10 * BLOCKSIZE; yPos += BLOCKSIZE) {
                     result.push([
                         x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
                         yPos,
@@ -345,13 +345,13 @@ function getChunkBlocks(x) {
                     ]);
                 }
                 // pierre
-                for (var yPos = parseInt(getYProcedural((x + 16) * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * 10; yPos <= 80 * BLOCKSIZE; yPos += BLOCKSIZE) {
+                for (var yPos = parseInt(getYProcedural((x + 64) * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * 5; yPos <= 80 * BLOCKSIZE; yPos += BLOCKSIZE) {
                     result.push([
                         x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
                         yPos,
                         5
                     ]);
-                }         
+                }  
             } else {
                 // netherrack
                 for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <=  80 * BLOCKSIZE; yPos += BLOCKSIZE) {
@@ -467,6 +467,43 @@ function getChunkBlocks(x) {
                 parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE,
                 6
             ]);
+        }
+        // cave
+        if (worldDatas.isInNether === false) {
+            // air cave
+            var caveXstart = 16;
+            // determine si il peut y avoir une grotte
+            if ((getXwithSeed(x) + getXwithSeed(x + 1) + getXwithSeed(x + 2)) / 3 > 3.5) {
+                caveXstart = 0;
+            }
+
+            for (var airIndex = 0; airIndex < result.length; airIndex++) {
+                if (result[airIndex][1] === 10 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE && result[airIndex][0] >= caveXstart * BLOCKSIZE + x * 16 * BLOCKSIZE) {
+                    result.splice(airIndex, 10);
+                }
+            }
+            for (var xPos = 0; xPos < 16; xPos++) {
+                // toit grotte
+                var roofTop = 6 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE;
+                var roofBottom = parseInt(getYProcedural((x + 96) * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * 10 + getXwithSeed(x) * BLOCKSIZE;
+                for (var yPos = roofTop; yPos <= roofBottom; yPos += BLOCKSIZE) {
+                    result.push([
+                        x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
+                        yPos,
+                        5
+                    ]);
+                }
+                // sol grotte
+                var groundTop = parseInt(getYProcedural((x + 128) * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * 19 + getXwithSeed(x) * BLOCKSIZE;
+                var groundBottom = 23 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE;
+                for (var yPos = groundTop; yPos <= groundBottom; yPos += BLOCKSIZE) {
+                    result.push([
+                        x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
+                        yPos,
+                        5
+                    ]);
+                }
+            }
         }
     }
     return result;
