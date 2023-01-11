@@ -245,7 +245,7 @@ if (localStorage.getItem("datas") != null) {
 } else {
     // si il n'y a pas de donnees enregistre generer
     for (var i = 0; i < worldDatas.inventory.content.length; i++) {
-        worldDatas.inventory.content[i] = parseInt(Math.random() * (blockTextures.length - 1) + 1) - 1;
+        worldDatas.inventory.content[i] = parseInt(Math.random() * (blockTextures.length - 2) + 1) - 1;
         if(Math.random() >= 0.85) {
             worldDatas.inventory.content[i] = null;
         }
@@ -345,7 +345,7 @@ function getChunkBlocks(x) {
                     1
                 ]);
                 // terre
-                for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <= 10 * BLOCKSIZE; yPos += BLOCKSIZE) {
+                for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos < parseInt(getYProcedural((x + 64) * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * 5; yPos += BLOCKSIZE) {
                     result.push([
                         x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
                         yPos,
@@ -360,6 +360,7 @@ function getChunkBlocks(x) {
                         5
                     ]);
                 }
+                
                 // bedrock
                 result.push([
                     x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
@@ -368,23 +369,48 @@ function getChunkBlocks(x) {
                 ]);
             } else {
                 // netherrack
-                for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <=  80 * BLOCKSIZE; yPos += BLOCKSIZE) {
-                    result.push([
-                        x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
-                        yPos,
-                        9
-                    ]);
-                } 
-                // lave
-                if (parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE >= 100) {
-                    for (var yPos = 100; yPos <=  parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE; yPos += BLOCKSIZE) {
+                for (var xPos = 0; xPos < 16; xPos++) {
+                    // couche du haut
+                    var roofTop = - 20 * BLOCKSIZE;
+                    var roofBottom = parseInt(getYProcedural((x + 96) * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * - 2 + getXwithSeed(x) * BLOCKSIZE;
+                    for (var yPos = roofTop; yPos <= roofBottom; yPos += BLOCKSIZE) {
+                        result.push([
+                            x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
+                            yPos,
+                            9
+                        ]);
+                    }
+                    // couche du bas
+                    var groundTop = parseInt(getYProcedural((x + 128) * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * 10 + getXwithSeed(x) * BLOCKSIZE;
+                    var groundBottom = 30 * BLOCKSIZE;
+                    for (var yPos = groundTop; yPos <= groundBottom; yPos += BLOCKSIZE) {
+                        result.push([
+                            x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
+                            yPos,
+                            9
+                        ]);
+                    }
+
+                    // lave
+                    for (var yPos = groundTop; yPos > 10 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE; yPos -= BLOCKSIZE) {
                         result.push([
                             x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
                             yPos,
                             10
                         ]);
-                    } 
-                }
+                    }
+
+                    //bedrock
+                    result.push([
+                        x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
+                        -21 * BLOCKSIZE,
+                        12
+                    ], [
+                        x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
+                        31 * BLOCKSIZE,
+                        12
+                    ]);
+                } 
             }
         }
         if (worldDatas.isInNether === false) {
@@ -478,7 +504,7 @@ function getChunkBlocks(x) {
             // feu
             result.push([
                 x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE,
-                parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE,
+                parseInt(getYProcedural((x + 128) * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * 9 + getXwithSeed(x) * BLOCKSIZE,
                 6
             ]);
         }
@@ -498,7 +524,7 @@ function getChunkBlocks(x) {
             }
             for (var xPos = 0; xPos < 16; xPos++) {
                 // toit grotte
-                var roofTop = 6 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE;
+                var roofTop = 8 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE;
                 var roofBottom = parseInt(getYProcedural((x + 96) * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * 10 + getXwithSeed(x) * BLOCKSIZE;
                 for (var yPos = roofTop; yPos <= roofBottom; yPos += BLOCKSIZE) {
                     result.push([
@@ -509,7 +535,7 @@ function getChunkBlocks(x) {
                 }
                 // sol grotte
                 var groundTop = parseInt(getYProcedural((x + 128) * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * 19 + getXwithSeed(x) * BLOCKSIZE;
-                var groundBottom = 23 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE;
+                var groundBottom = 21 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE;
                 for (var yPos = groundTop; yPos <= groundBottom; yPos += BLOCKSIZE) {
                     result.push([
                         x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
