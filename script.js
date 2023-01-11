@@ -16,15 +16,6 @@ const ZOMBIE_WIDTH = 50;
 const ZOMBIE_HEIGHT = 100;
 const ZOMBIE_FOLLOW_DISTANCE = 600;
 
-//variables
-var renderDistance = 2;
-
-//variables des inputs
-var isRightPressed = false;
-var isLeftPressed = false;
-var isClicked = false;
-var isRightClicked = false;
-
 //#region TEXTURES
 //variables des images
 var playerSprite = new Image();
@@ -38,7 +29,7 @@ zombieSprite.src = 'sprites/entities/zombie.png';
 var forcefield = new Image();
 forcefield.src = 'sprites/mist/forcefield.png';
 
-//textures des portails
+//#region textures des portails
 var portalAnimationFrames = [];
 for (var i = 0; i < 32; i++) {
     portalAnimationFrames.push(new Image());
@@ -75,8 +66,9 @@ portalAnimationFrames[28].src = 'sprites/blocks/portal_animation_frames/portal_ 
 portalAnimationFrames[29].src = 'sprites/blocks/portal_animation_frames/portal_ (30).png';
 portalAnimationFrames[30].src = 'sprites/blocks/portal_animation_frames/portal_ (31).png';
 portalAnimationFrames[31].src = 'sprites/blocks/portal_animation_frames/portal_ (32).png';
+//#endregion
 
-//textures du feux
+//#region textures du feux
 var fireAnimationFrames = [];
 for (var i = 0; i < 32; i++) {
     fireAnimationFrames.push(new Image());
@@ -113,8 +105,9 @@ fireAnimationFrames[28].src = 'sprites/blocks/fire_animation_frames/fire_ (29).p
 fireAnimationFrames[29].src = 'sprites/blocks/fire_animation_frames/fire_ (30).png';
 fireAnimationFrames[30].src = 'sprites/blocks/fire_animation_frames/fire_ (31).png';
 fireAnimationFrames[31].src = 'sprites/blocks/fire_animation_frames/fire_ (32).png';
+//#endregion
 
-//textures de la lave
+//#region textures de la lave
 var lavaAnimationFrames = [];
 for (var i = 0; i < 20; i++) {
     lavaAnimationFrames.push(new Image());
@@ -139,6 +132,7 @@ lavaAnimationFrames[16].src = 'sprites/blocks/lava_animation_frames/lava_ (17).p
 lavaAnimationFrames[17].src = 'sprites/blocks/lava_animation_frames/lava_ (18).png';
 lavaAnimationFrames[18].src = 'sprites/blocks/lava_animation_frames/lava_ (19).png';
 lavaAnimationFrames[19].src = 'sprites/blocks/lava_animation_frames/lava_ (20).png';
+//#endregion
 
 //textures des blocs
 var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Image(), new Image(),
@@ -157,7 +151,17 @@ blockTextures[10].src = 'sprites/Items/lava_bucket.png';
 blockTextures[11].src = 'sprites/blocks/portal_animation_frames/portal_ (1).png';
 blockTextures[12].src = 'sprites/blocks/bedrock.png';
 
+const BLOCK_HITBOXES = [true, true, true, true, true, true, false, true, true, true, false, false, true];
 //#endregion
+
+//#region variables
+var renderDistance = 2;
+
+//variables des inputs
+var isRightPressed = false;
+var isLeftPressed = false;
+var isClicked = false;
+var isRightClicked = false;
 
 //variables des blocs
 var blockX = 0;
@@ -233,6 +237,7 @@ var worldDatas = {
         inMouse: null,
     }
 }
+//#endregion
 
 //#region CHARGEMENT DES DONNEES
 if (localStorage.getItem("datas") != null) {
@@ -258,14 +263,15 @@ noise.seed(worldDatas.proceduraleSeed);
 
 //#endregion
 
+//#region FONCTIONS
 //detecte si il y a un bloc a des coordonnees precises
-function isABlock(x, y) {
+function isABlock(x, y, checkForHitbox = false) {
     var chunk = parseInt(parseInt(x / BLOCKSIZE) / 16) - (x < 0 ? 1 : 0);
     var chunkBlocks = getChunkBlocks(chunk);
     var result = false;
     for (var i = 0; i < chunkBlocks.length; i++) {
         if (chunkBlocks[i][0] <= x && chunkBlocks[i][0] + BLOCKSIZE >= x && chunkBlocks[i][1] <= y && chunkBlocks[i][1] + BLOCKSIZE >= y) {
-            result = true;
+            result = checkForHitbox ? BLOCK_HITBOXES[chunkBlocks[i][2]] : true;
         }
     }
     return result;
@@ -522,6 +528,7 @@ function resetWorld() {
     reseted = true;
     localStorage.clear();
 }
+//#endregion
 
 function loop() {
     canvas.width = window.innerWidth - 1;
