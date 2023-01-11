@@ -339,7 +339,7 @@ function getChunkBlocks(x) {
                     1
                 ]);
                 // terre
-                for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos <= 10 * BLOCKSIZE; yPos += BLOCKSIZE) {
+                for (var yPos = parseInt(getYProcedural(x * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE; yPos < parseInt(getYProcedural((x + 64) * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * 5; yPos += BLOCKSIZE) {
                     result.push([
                         x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
                         yPos,
@@ -354,6 +354,7 @@ function getChunkBlocks(x) {
                         5
                     ]);
                 }
+                
                 // bedrock
                 result.push([
                     x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
@@ -517,7 +518,7 @@ function getChunkBlocks(x) {
             }
             for (var xPos = 0; xPos < 16; xPos++) {
                 // toit grotte
-                var roofTop = 6 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE;
+                var roofTop = 8 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE;
                 var roofBottom = parseInt(getYProcedural((x + 96) * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * 10 + getXwithSeed(x) * BLOCKSIZE;
                 for (var yPos = roofTop; yPos <= roofBottom; yPos += BLOCKSIZE) {
                     result.push([
@@ -528,7 +529,7 @@ function getChunkBlocks(x) {
                 }
                 // sol grotte
                 var groundTop = parseInt(getYProcedural((x + 128) * 16 * BLOCKSIZE + xPos * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE + BLOCKSIZE * 19 + getXwithSeed(x) * BLOCKSIZE;
-                var groundBottom = 23 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE;
+                var groundBottom = 21 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE;
                 for (var yPos = groundTop; yPos <= groundBottom; yPos += BLOCKSIZE) {
                     result.push([
                         x * 16 * BLOCKSIZE + xPos * BLOCKSIZE,
