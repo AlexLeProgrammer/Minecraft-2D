@@ -316,7 +316,7 @@ function getChunkBlocks(x) {
     var isModified = false;
     if (worldDatas.isInNether === false) {
         for (var i = 0; i < worldDatas.modifiedChunks.length; i++) {
-            if (parseInt(parseInt(worldDatas.modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (worldDatas.modifiedChunks[i][0][0] < 0 ? 1 : 0) == x) {
+            if (parseInt(parseInt(worldDatas.modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (worldDatas.modifiedChunks[i][0][0] < 0 ? 1 : 0) === x) {
                 isModified = true;
                 for (var j = 0; j < worldDatas.modifiedChunks[i].length; j++) {
                     result.push(worldDatas.modifiedChunks[i][j]);
@@ -325,7 +325,7 @@ function getChunkBlocks(x) {
         }
     } else {
         for (var i = 0; i < worldDatas.netherModifiedChunks.length; i++) {
-            if (parseInt(parseInt(worldDatas.netherModifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (worldDatas.netherModifiedChunks[i][0][0] < 0 ? 1 : 0) == x) {
+            if (parseInt(parseInt(worldDatas.netherModifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (worldDatas.netherModifiedChunks[i][0][0] < 0 ? 1 : 0) === x) {
                 isModified = true;
                 for (var j = 0; j < worldDatas.netherModifiedChunks[i].length; j++) {
                     result.push(worldDatas.netherModifiedChunks[i][j]);
@@ -704,7 +704,7 @@ function loop() {
         if (worldDatas.isInNether === false) {
             if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && worldDatas.inventory.content[usedHotbarID] != null) {
                 // si le chunk n'etait pas modifié creer le terrain
-                if (worldDatas.modifiedChunks[chunkIndex] == null) {
+                if (worldDatas.modifiedChunks[chunkIndex] === null) {
                     var terrain = [];
                     for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
                         terrain.push(getChunkBlocks(chunkIndex)[i]);
@@ -719,7 +719,7 @@ function loop() {
                 (isABlock(blockX + BLOCKSIZE * 0.5, blockY - BLOCKSIZE * 0.5) && !isASpecificBlock(blockX + BLOCKSIZE * 0.5, blockY - BLOCKSIZE * 0.5, 6)) ||
                 (isABlock(blockX + BLOCKSIZE * 1.5, blockY + BLOCKSIZE * 0.5) && !isASpecificBlock(blockX + BLOCKSIZE * 1.5, blockY + BLOCKSIZE * 0.5, 6)) ||
                 (isABlock(blockX - BLOCKSIZE * 0.5, blockY + BLOCKSIZE * 0.5) && !isASpecificBlock(blockX - BLOCKSIZE * 0.5, blockY + BLOCKSIZE * 0.5, 6)) || canPlaceAir) {
-                    if (chunkIndex == worldDatas.modifiedChunks.length) {
+                    if (chunkIndex === worldDatas.modifiedChunks.length) {
                         worldDatas.modifiedChunks.push([]);
                     }
                     var newBlock = [blockX, blockY, worldDatas.inventory.content[usedHotbarID], 0];
@@ -729,7 +729,7 @@ function loop() {
         } else {
             if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && worldDatas.inventory.content[usedHotbarID] != null) {
                 // si le chunk n'etait pas modifié creer le terrain
-                if (worldDatas.netherModifiedChunks[netherChunkIndex] == null) {
+                if (worldDatas.netherModifiedChunks[netherChunkIndex] === null) {
                     var terrain = [];
                     for (var i = 0; i < getChunkBlocks(netherChunkIndex).length; i++) {
                         terrain.push(getChunkBlocks(netherChunkIndex)[i]);
@@ -744,7 +744,7 @@ function loop() {
                 (isABlock(blockX + BLOCKSIZE * 0.5, blockY - BLOCKSIZE * 0.5) && !isASpecificBlock(blockX + BLOCKSIZE * 0.5, blockY - BLOCKSIZE * 0.5, 6)) ||
                 (isABlock(blockX + BLOCKSIZE * 1.5, blockY + BLOCKSIZE * 0.5) && !isASpecificBlock(blockX + BLOCKSIZE * 1.5, blockY + BLOCKSIZE * 0.5, 6)) ||
                 (isABlock(blockX - BLOCKSIZE * 0.5, blockY + BLOCKSIZE * 0.5) && !isASpecificBlock(blockX - BLOCKSIZE * 0.5, blockY + BLOCKSIZE * 0.5, 6)) || canPlaceAir) {
-                    if (netherChunkIndex == worldDatas.netherModifiedChunks.length) {
+                    if (netherChunkIndex === worldDatas.netherModifiedChunks.length) {
                         worldDatas.netherModifiedChunks.push([]);
                     }
                     var newBlock = [blockX, blockY, worldDatas.inventory.content[usedHotbarID], 0];
@@ -849,7 +849,7 @@ function loop() {
             //casser bloc
             if (isRightClicked) {
                 // si le chunk n'etait pas modifié creer le terrain
-                if (worldDatas.modifiedChunks[chunkIndex] == null) {
+                if (worldDatas.modifiedChunks[chunkIndex] === null) {
                     var terrain = [];
                     for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
                         terrain.push(getChunkBlocks(chunkIndex)[i]);
@@ -860,7 +860,7 @@ function loop() {
                     }
                 }
                 for (var i = 0; i < worldDatas.modifiedChunks[chunkIndex].length; i++) {
-                    if (blockX == worldDatas.modifiedChunks[chunkIndex][i][0] && blockY == worldDatas.modifiedChunks[chunkIndex][i][1] && worldDatas.modifiedChunks[chunkIndex][i][2] != 12) {
+                    if (blockX === worldDatas.modifiedChunks[chunkIndex][i][0] && blockY === worldDatas.modifiedChunks[chunkIndex][i][1] && worldDatas.modifiedChunks[chunkIndex][i][2] != 12) {
                         worldDatas.modifiedChunks[chunkIndex].splice(i, 1);
                     }
                 }
@@ -869,7 +869,7 @@ function loop() {
             //casser bloc
             if (isRightClicked) {
                 // si le chunk n'etait pas modifié creer le terrain
-                if (worldDatas.netherModifiedChunks[netherChunkIndex] == null) {
+                if (worldDatas.netherModifiedChunks[netherChunkIndex] === null) {
                     var terrain = [];
                     for (var i = 0; i < getChunkBlocks(netherChunkIndex).length; i++) {
                         terrain.push(getChunkBlocks(netherChunkIndex)[i]);
@@ -880,7 +880,7 @@ function loop() {
                     }
                 }
                 for (var i = 0; i < worldDatas.netherModifiedChunks[netherChunkIndex].length; i++) {
-                    if (blockX == worldDatas.netherModifiedChunks[netherChunkIndex][i][0] && blockY == worldDatas.netherModifiedChunks[netherChunkIndex][i][1]) {
+                    if (blockX === worldDatas.netherModifiedChunks[netherChunkIndex][i][0] && blockY === worldDatas.netherModifiedChunks[netherChunkIndex][i][1]) {
                         worldDatas.netherModifiedChunks[netherChunkIndex].splice(i, 1);
                     }
                 }
@@ -1094,11 +1094,11 @@ document.addEventListener('mousedown', function(e) {
 });
 document.addEventListener('keydown', function(e) {
     // droite
-    if (e.which === 39 || e.which == 68) {
+    if (e.which === 39 || e.which === 68) {
         isRightPressed = true;
     }
     // gauche
-    if (e.which === 37 || e.which == 65) {
+    if (e.which === 37 || e.which === 65) {
         isLeftPressed = true;
     }
     // saut
@@ -1113,11 +1113,11 @@ document.addEventListener('keydown', function(e) {
 document.addEventListener('keyup', function(e) {
     
     // droite
-    if (e.which === 39 || e.which == 68) {
+    if (e.which === 39 || e.which === 68) {
         isRightPressed = false;
     }
     // gauche
-    if (e.which === 37 || e.which == 65) {
+    if (e.which === 37 || e.which === 65) {
         isLeftPressed = false;
     }
 });
