@@ -567,8 +567,7 @@ function loop() {
         //#region PHISIQUES
         // vertical
         // sol
-        if (isABlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + worldDatas.playerYVelocity) &&
-        !isASpecificBlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + worldDatas.playerYVelocity, 10) && worldDatas.playerYVelocity >= 0 && !isASpecificBlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + worldDatas.playerYVelocity, 6)) {
+        if (isABlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + worldDatas.playerYVelocity, true)) {
             if (worldDatas.playerYVelocity > 13) {
                 worldDatas.playerLife -= (worldDatas.playerYVelocity - 13) / 2;
                 worldDatas.playerLife -= worldDatas.playerLife % 0.5;
@@ -579,9 +578,7 @@ function loop() {
         }
         
         // toit
-        if (isABlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2) &&
-        !isASpecificBlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2, 6) &&
-        !isASpecificBlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 - BLOCKSIZE* 2, 10) && worldDatas.playerYVelocity <= 0) {
+        if (isABlock(worldDatas.playerX, worldDatas.playerY - PLAYER_HEIGHT / 2, true) && worldDatas.playerYVelocity <= 0) {
             worldDatas.playerYVelocity = 0;
         }
         worldDatas.playerY += worldDatas.playerYVelocity;
@@ -1099,5 +1096,6 @@ document.addEventListener('keyup', function(e) {
     }
 });
 //#endregion
+
 // demarre le jeu
 requestAnimationFrame(loop);
