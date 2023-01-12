@@ -15,6 +15,7 @@ const PLAYER_HEIGHT = 85;
 const ZOMBIE_WIDTH = 50;
 const ZOMBIE_HEIGHT = 100;
 const ZOMBIE_FOLLOW_DISTANCE = 600;
+const STACKSIZE = 64;
 
 //#region TEXTURES
 //variables des images
@@ -229,12 +230,20 @@ var worldDatas = {
     inventory: {
         opened: false,
         content: [
-            0, 0, 0, 0, 0, 0, 0, 0, 0,
-            4, 4, 5, 5, 7, 7, 8, 8, 0,
-            9, 0, 0, 1, 1, 2, 2, 3, 3,
-            10, 4, 4, 5, 5, 6, 6, 7, 7,
+            null, null, null, null, null, null, null, null, null,
+            null, null, null, null, null, null, null, null, null,
+            null, null, null, null, null, null, null, null, null,
+            null, null, null, null, null, null, null, null, null
         ],
+        stackSize: [
+            0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0
+        ],
+
         inMouse: null,
+        stackInMouse: 0
     }
 }
 //#endregion
@@ -243,13 +252,7 @@ var worldDatas = {
 if (localStorage.getItem("datas") != null) {
     worldDatas = JSON.parse(localStorage.getItem("datas"));
 } else {
-    // si il n'y a pas de donnees enregistre generer
-    for (var i = 0; i < worldDatas.inventory.content.length; i++) {
-        worldDatas.inventory.content[i] = parseInt(Math.random() * (blockTextures.length - 2) + 1) - 1;
-        if(Math.random() >= 0.85) {
-            worldDatas.inventory.content[i] = null;
-        }
-    }
+    // si il n'y a pas de donnees enregistrées generer
     // genere la graine
     worldDatas.proceduraleSeed = Math.random();
     worldDatas.proceduraleNetherSeed = Math.random();
@@ -724,6 +727,11 @@ function loop() {
                     }
                     var newBlock = [blockX, blockY, worldDatas.inventory.content[usedHotbarID], 0];
                     worldDatas.modifiedChunks[chunkIndex].push(newBlock);
+                    worldDatas.inventory.stackSize[usedHotbarID] --;
+                    if (worldDatas.inventory.stackSize[usedHotbarID] <= 0) {
+                        worldDatas.inventory.stackSize[usedHotbarID] = 0;
+                        worldDatas.inventory.content[usedHotbarID] = null;
+                    }
                 }
             }
         } else {
@@ -749,6 +757,13 @@ function loop() {
                     }
                     var newBlock = [blockX, blockY, worldDatas.inventory.content[usedHotbarID], 0];
                     worldDatas.netherModifiedChunks[netherChunkIndex].push(newBlock);
+                    var newBlock = [blockX, blockY, worldDatas.inventory.content[usedHotbarID], 0];
+                    worldDatas.modifiedChunks[chunkIndex].push(newBlock);
+                    worldDatas.inventory.stackSize[usedHotbarID] --;
+                    if (worldDatas.inventory.stackSize[usedHotbarID] <= 0) {
+                        worldDatas.inventory.stackSize[usedHotbarID] = 0;
+                        worldDatas.inventory.content[usedHotbarID] = null;
+                    }
                 }
             }
         }
@@ -861,6 +876,26 @@ function loop() {
                 }
                 for (var i = 0; i < worldDatas.modifiedChunks[chunkIndex].length; i++) {
                     if (blockX == worldDatas.modifiedChunks[chunkIndex][i][0] && blockY == worldDatas.modifiedChunks[chunkIndex][i][1] && worldDatas.modifiedChunks[chunkIndex][i][2] != 12) {
+                        var putted = false;
+                        var firstFreeCell = -1;
+                        var foundedFirstFreeCell = false;
+                        for (var cellI = 0; cellI < worldDatas.inventory.content.length; cellI ++) {
+                            if (worldDatas.inventory.content[cellI] === worldDatas.modifiedChunks[chunkIndex][i][2] && worldDatas.inventory.stackSize[cellI] < STACKSIZE && !putted && worldDatas.inventory.content[usedHotbarID] != null) {
+                                worldDatas.inventory.stackSize[cellI] ++;
+                                putted = true;
+                            }
+                            if (worldDatas.inventory.content[cellI] == null && !foundedFirstFreeCell) {
+                                firstFreeCell = cellI;
+                                foundedFirstFreeCell = true;
+                            }
+                        }
+                        if (!putted && worldDatas.inventory.content[usedHotbarID] == null) {
+                            worldDatas.inventory.content[usedHotbarID] = worldDatas.modifiedChunks[chunkIndex][i][2];
+                            worldDatas.inventory.stackSize[usedHotbarID] = 1;
+                        } else if (!putted && firstFreeCell != -1) {
+                            worldDatas.inventory.content[firstFreeCell] = worldDatas.modifiedChunks[chunkIndex][i][2];
+                            worldDatas.inventory.stackSize[firstFreeCell] = 1;
+                        }
                         worldDatas.modifiedChunks[chunkIndex].splice(i, 1);
                     }
                 }
@@ -895,10 +930,36 @@ function loop() {
         var cellX = parseInt((mouseScreenPosX - canvas.width / 2 + GUI_SIZE * 4.6) / GUI_SIZE) - ((mouseScreenPosX - canvas.width / 2 + GUI_SIZE * 4.6) < 0 ? 1 : 0);
         var cellY = parseInt((mouseScreenPosY - canvas.height / 2) / GUI_SIZE) - ((mouseScreenPosY - canvas.height / 2) < 0 ? 1 : 0);
         var cellI = cellX + (3 - cellY) * 9;
+        // clic gauche
         if (isClicked && cellX >= 0 && cellX <= 8 && cellY >= 0 && cellY <= 3) {
-            var wasInMouse = worldDatas.inventory.inMouse;
-            worldDatas.inventory.inMouse = worldDatas.inventory.content[cellI];
-            worldDatas.inventory.content[cellI] = wasInMouse;
+            if (worldDatas.inventory.inMouse === worldDatas.inventory.content[cellI]) {
+                worldDatas.inventory.stackSize[cellI] += worldDatas.inventory.stackInMouse;
+                worldDatas.inventory.stackInMouse = worldDatas.inventory.stackSize[cellI] - STACKSIZE;
+                if (worldDatas.inventory.stackSize[cellI] >= STACKSIZE) {
+                    worldDatas.inventory.stackSize[cellI] = STACKSIZE;
+                }
+                if (worldDatas.inventory.stackInMouse <= 0) {
+                    worldDatas.inventory.stackInMouse = 0;
+                    worldDatas.inventory.inMouse = null;
+                }
+            } else {
+                var wasStackInMouse = worldDatas.inventory.stackInMouse;
+                worldDatas.inventory.stackInMouse = worldDatas.inventory.stackSize[cellI];
+                worldDatas.inventory.stackSize[cellI] = wasStackInMouse;
+
+                var wasInMouse = worldDatas.inventory.inMouse;
+                worldDatas.inventory.inMouse = worldDatas.inventory.content[cellI];
+                worldDatas.inventory.content[cellI] = wasInMouse;
+            }
+        }
+        // clic droit
+        if (isRightClicked && cellX >= 0 && cellX <= 8 && cellY >= 0 && cellY <= 3) {
+            if (worldDatas.inventory.inMouse == null && worldDatas.inventory.stackSize[cellI] >= 2) {
+                var half = parseInt(worldDatas.inventory.stackSize[cellI] / 2);
+                worldDatas.inventory.inMouse = worldDatas.inventory.content[cellI];
+                worldDatas.inventory.stackInMouse = worldDatas.inventory.stackSize[cellI] - half;
+                worldDatas.inventory.stackSize[cellI] = half;
+            }
         }
     }
     //#endregion
@@ -968,6 +1029,9 @@ function loop() {
         var hotbarHeight = 20;
         var itemsMargin = 10;
         var hotbarStartX = canvas.width / 2 - hotbarCellSize * 9 / 2;
+        var fontSize = GUI_SIZE * 0.5;
+        canvas.fillStyle = "white";
+        context.font = fontSize.toString() + "px roboto";
         for (var cellIndex = 0; cellIndex < 9; cellIndex ++) {
             // case
             context.drawImage(hotbarCellSprite, hotbarStartX + cellIndex * hotbarCellSize,
@@ -976,6 +1040,11 @@ function loop() {
             if(worldDatas.inventory.content[cellIndex] != null) {
                 context.drawImage(blockTextures[worldDatas.inventory.content[cellIndex]], hotbarStartX + cellIndex * hotbarCellSize + itemsMargin,
                 canvas.height - hotbarCellSize - hotbarHeight + itemsMargin, hotbarCellSize - 2 * itemsMargin, hotbarCellSize - 2 * itemsMargin);
+                context.fillText(
+                    worldDatas.inventory.stackSize[cellIndex].toString(),
+                    hotbarStartX + cellIndex * hotbarCellSize + itemsMargin + GUI_SIZE * 0.9 - fontSize * (worldDatas.inventory.stackSize[cellIndex] >= 10 ? 1.5 : 1),
+                    canvas.height - hotbarCellSize - hotbarHeight + itemsMargin + GUI_SIZE * 0.9 - fontSize / 2
+                );
             }
         }
         // selecteur
@@ -1026,7 +1095,12 @@ function loop() {
                             canvas.height / 2 + inventorySizeY / 2 - GUI_SIZE * 2.55 - GUI_SIZE * y,
                             GUI_SIZE * 0.75,
                             GUI_SIZE * 0.75
-                            );
+                        );
+                        context.fillText(
+                            worldDatas.inventory.stackSize[x + (y + 1) * 9].toString(),
+                            canvas.width / 2 - inventorySizeX / 2 + GUI_SIZE * 0.55 + GUI_SIZE * x * 1.02 + GUI_SIZE - fontSize * (worldDatas.inventory.stackSize[x + (y + 1) * 9] >= 10 ? 1.5 : 1),
+                            canvas.height / 2 + inventorySizeY / 2 - GUI_SIZE * 2.55 - GUI_SIZE * y + GUI_SIZE - fontSize / 2
+                        );
                     }
                 }
             }
@@ -1039,7 +1113,12 @@ function loop() {
                         canvas.height / 2 + inventorySizeY / 2 - GUI_SIZE * 1.3,
                         GUI_SIZE * 0.75,
                         GUI_SIZE * 0.75
-                        );
+                    );
+                    context.fillText(
+                        worldDatas.inventory.stackSize[i].toString(),
+                        canvas.width / 2 - inventorySizeX / 2 + GUI_SIZE * 0.55 + GUI_SIZE * i * 1.02 + GUI_SIZE - fontSize * (worldDatas.inventory.stackSize[i] >= 10 ? 1.5 : 1),
+                        canvas.height / 2 + inventorySizeY / 2 - GUI_SIZE * 1.3 + GUI_SIZE - fontSize / 2
+                    );
                 }
             }
             // in mouse
@@ -1050,7 +1129,12 @@ function loop() {
                     mouseScreenPosY - GUI_SIZE * 0.75 / 2,
                     GUI_SIZE * 0.75,
                     GUI_SIZE * 0.75
-                    );
+                );
+                context.fillText(
+                    worldDatas.inventory.stackInMouse.toString(),
+                    mouseScreenPosX - GUI_SIZE * 0.75 / 2 + GUI_SIZE - fontSize * (worldDatas.inventory.stackInMouse >= 10 ? 1.5 : 1),
+                    mouseScreenPosY - GUI_SIZE * 0.75 / 2 + GUI_SIZE - fontSize / 2
+                );
             }
         }
         //#endregion
