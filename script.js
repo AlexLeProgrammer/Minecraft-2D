@@ -252,15 +252,7 @@ var worldDatas = {
 if (localStorage.getItem("datas") != null && false) {
     worldDatas = JSON.parse(localStorage.getItem("datas"));
 } else {
-    // si il n'y a pas de donnees enregistre generer
-    for (var i = 0; i < worldDatas.inventory.content.length; i++) {
-        worldDatas.inventory.content[i] = parseInt(Math.random() * (blockTextures.length - 2) + 1) - 1;
-        worldDatas.inventory.stackSize[i] = parseInt(Math.random() * (62) + 1);
-        if(Math.random() >= 0.85) {
-            worldDatas.inventory.content[i] = null;
-            worldDatas.inventory.stackSize[i] = 0;
-        }
-    }
+    // si il n'y a pas de donnees enregistrées generer
     // genere la graine
     worldDatas.proceduraleSeed = Math.random();
     worldDatas.proceduraleNetherSeed = Math.random();
@@ -884,10 +876,10 @@ function loop() {
                 }
                 for (var i = 0; i < worldDatas.modifiedChunks[chunkIndex].length; i++) {
                     if (blockX == worldDatas.modifiedChunks[chunkIndex][i][0] && blockY == worldDatas.modifiedChunks[chunkIndex][i][1] && worldDatas.modifiedChunks[chunkIndex][i][2] != 12) {
+                        var putted = false;
+                        var firstFreeCell = -1;
+                        var foundedFirstFreeCell = false;
                         for (var cellI = 0; cellI < worldDatas.inventory.content.length; cellI ++) {
-                            var putted = false;
-                            var firstFreeCell = -1;
-                            var foundedFirstFreeCell = false;
                             if (worldDatas.inventory.content[cellI] === worldDatas.modifiedChunks[chunkIndex][i][2] && worldDatas.inventory.stackSize[cellI] < STACKSIZE && !putted) {
                                 worldDatas.inventory.stackSize[cellI] ++;
                                 putted = true;
