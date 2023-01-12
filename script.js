@@ -704,7 +704,7 @@ function loop() {
         if (worldDatas.isInNether === false) {
             if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && worldDatas.inventory.content[usedHotbarID] != null) {
                 // si le chunk n'etait pas modifié creer le terrain
-                if (worldDatas.modifiedChunks[chunkIndex] === null) {
+                if (worldDatas.modifiedChunks[chunkIndex] == null) {
                     var terrain = [];
                     for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
                         terrain.push(getChunkBlocks(chunkIndex)[i]);
@@ -729,7 +729,7 @@ function loop() {
         } else {
             if (isClicked && !isABlock(blockX + BLOCKSIZE / 2, blockY + BLOCKSIZE / 2) && worldDatas.inventory.content[usedHotbarID] != null) {
                 // si le chunk n'etait pas modifié creer le terrain
-                if (worldDatas.netherModifiedChunks[netherChunkIndex] === null) {
+                if (worldDatas.netherModifiedChunks[netherChunkIndex] == null) {
                     var terrain = [];
                     for (var i = 0; i < getChunkBlocks(netherChunkIndex).length; i++) {
                         terrain.push(getChunkBlocks(netherChunkIndex)[i]);
@@ -849,7 +849,7 @@ function loop() {
             //casser bloc
             if (isRightClicked) {
                 // si le chunk n'etait pas modifié creer le terrain
-                if (worldDatas.modifiedChunks[chunkIndex] === null) {
+                if (worldDatas.modifiedChunks[chunkIndex] == null) {
                     var terrain = [];
                     for (var i = 0; i < getChunkBlocks(chunkIndex).length; i++) {
                         terrain.push(getChunkBlocks(chunkIndex)[i]);
@@ -869,7 +869,7 @@ function loop() {
             //casser bloc
             if (isRightClicked) {
                 // si le chunk n'etait pas modifié creer le terrain
-                if (worldDatas.netherModifiedChunks[netherChunkIndex] === null) {
+                if (worldDatas.netherModifiedChunks[netherChunkIndex] == null) {
                     var terrain = [];
                     for (var i = 0; i < getChunkBlocks(netherChunkIndex).length; i++) {
                         terrain.push(getChunkBlocks(netherChunkIndex)[i]);
