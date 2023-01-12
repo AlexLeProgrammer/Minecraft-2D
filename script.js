@@ -249,7 +249,7 @@ var worldDatas = {
 //#endregion
 
 //#region CHARGEMENT DES DONNEES
-if (localStorage.getItem("datas") != null && false) {
+if (localStorage.getItem("datas") != null) {
     worldDatas = JSON.parse(localStorage.getItem("datas"));
 } else {
     // si il n'y a pas de donnees enregistrées generer
@@ -880,7 +880,7 @@ function loop() {
                         var firstFreeCell = -1;
                         var foundedFirstFreeCell = false;
                         for (var cellI = 0; cellI < worldDatas.inventory.content.length; cellI ++) {
-                            if (worldDatas.inventory.content[cellI] === worldDatas.modifiedChunks[chunkIndex][i][2] && worldDatas.inventory.stackSize[cellI] < STACKSIZE && !putted) {
+                            if (worldDatas.inventory.content[cellI] === worldDatas.modifiedChunks[chunkIndex][i][2] && worldDatas.inventory.stackSize[cellI] < STACKSIZE && !putted && worldDatas.inventory.content[usedHotbarID] != null) {
                                 worldDatas.inventory.stackSize[cellI] ++;
                                 putted = true;
                             }
@@ -889,7 +889,10 @@ function loop() {
                                 foundedFirstFreeCell = true;
                             }
                         }
-                        if (!putted && firstFreeCell != -1) {
+                        if (!putted && worldDatas.inventory.content[usedHotbarID] == null) {
+                            worldDatas.inventory.content[usedHotbarID] = worldDatas.modifiedChunks[chunkIndex][i][2];
+                            worldDatas.inventory.stackSize[usedHotbarID] = 1;
+                        } else if (!putted && firstFreeCell != -1) {
                             worldDatas.inventory.content[firstFreeCell] = worldDatas.modifiedChunks[chunkIndex][i][2];
                             worldDatas.inventory.stackSize[firstFreeCell] = 1;
                         }
