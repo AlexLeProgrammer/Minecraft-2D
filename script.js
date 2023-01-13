@@ -153,8 +153,96 @@ var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Ima
     blockTextures[12].src = 'sprites/blocks/bedrock.png';
     
     const BLOCK_HITBOXES = [true, true, true, true, true, true, false, true, true, true, false, false, true];
-    //#endregion
+
+    class Block {
+        constructor() {
+            this.id = "";
+            this.texture = new Image();
+            this.hitbox = true;
+            this.hardness = 20;
+        }
+    }
+
+    //#region DECLARER BLOCS
+    // type de blocs
+    var blocks = [];
+    var nextBlock = new Block();
     
+    // grass
+    nextBlock.id = "grass";
+    nextBlock.texture.src = 'sprites/blocks/grass.png';
+    nextBlock.hardness = 30;
+    blocks.push(nextBlock);
+    
+    // dirt
+    nextBlock.id = "dirt";
+    nextBlock.texture.src = 'sprites/blocks/dirt.png';
+    nextBlock.hardness = 30;
+    blocks.push(nextBlock);
+    
+    // stone
+    nextBlock.id = "stone";
+    nextBlock.texture.src = 'sprites/blocks/stone.png';
+    nextBlock.hardness = 80;
+    blocks.push(nextBlock);
+
+    // sand
+    nextBlock.id = "sand";
+    nextBlock.texture.src = 'sprites/blocks/sand.png';
+    nextBlock.hardness = 20;
+    blocks.push(nextBlock);
+
+    // obsidian
+    nextBlock.id = "obsidian";
+    nextBlock.texture.src = 'sprites/blocks/obsidian.png';
+    nextBlock.hardness = 120;
+    blocks.push(nextBlock);
+
+    // oak log
+    nextBlock.id = "oak_log";
+    nextBlock.texture.src = 'sprites/blocks/oak_log.png';
+    nextBlock.hardness = 40;
+    blocks.push(nextBlock);
+
+    // oak leaves
+    nextBlock.id = "oak_leaves";
+    nextBlock.texture.src = 'sprites/blocks/oak_leaves.png';
+    nextBlock.hardness = 40;
+    blocks.push(nextBlock);
+
+    // oak planks
+    nextBlock.id = "oak_plank";
+    nextBlock.texture.src = 'sprites/blocks/oak_plank.png';
+    nextBlock.hardness = 40;
+    blocks.push(nextBlock);
+
+    // netherrack
+    nextBlock.id = "netherrack";
+    nextBlock.texture.src = 'sprites/blocks/netherrack.png';
+    nextBlock.hardness = 40;
+    blocks.push(nextBlock);
+
+    // bedrock
+    nextBlock.id = "bedrock";
+    nextBlock.texture.src = 'sprites/blocks/bedrock.png';
+    nextBlock.hardness = -1;
+    blocks.push(nextBlock);
+
+    // portal
+    nextBlock.id = "portal";
+    nextBlock.texture.src = portalAnimationFrames[parseInt(animationFrameCounter / 3) % 31];
+    nextBlock.hardness = -1;
+    blocks.push(nextBlock);
+
+    // fire
+    nextBlock.id = "fire";
+    nextBlock.texture.src = fireAnimationFrames[parseInt(animationFrameCounter / 3) % 31];
+    nextBlock.hardness = 0;
+    blocks.push(nextBlock);
+
+    //#endregion
+    //#endregion
+
     //#region variables
     var renderDistance = 2;
     
