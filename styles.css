@@ -2,6 +2,7 @@ html, body {
     height: 100%;
     margin: 0;
 }
+
 body {
     background: #1FADC7;
     display: flex;
