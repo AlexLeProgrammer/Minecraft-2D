@@ -163,6 +163,15 @@ var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Ima
         }
     }
 
+    class InWorldBlock {
+        constructor() {
+            this.x = 0;
+            this.y = 0;
+            this.yVelocity;
+            this.id = "";
+        }
+    }
+
     //#region DECLARER BLOCS
     // type de blocs
     var blocks = [];
@@ -239,7 +248,7 @@ var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Ima
     nextBlock.texture.src = fireAnimationFrames[parseInt(animationFrameCounter / 3) % 31];
     nextBlock.hardness = 0;
     blocks.push(nextBlock);
-
+    
     //#endregion
     //#endregion
 
