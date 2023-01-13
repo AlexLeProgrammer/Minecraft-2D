@@ -212,8 +212,13 @@ var button_unselected = new Image();
 button_unselected.src = 'sprites/gui/button_unselected.png';
 var button_selected = new Image();
 button_selected.src = 'sprites/gui/button_selected.png';
-var isHoveringFirstButton = false;
-var isHoveringSecondButton = false;
+var isHoveringFirstDeathButton = false;
+var isHoveringSecondDeathButton = false;
+
+//menu echap
+var isEscapeMenuOpened = false;
+var isHoveringFirstEscapeButton = false;
+var isHoveringSecondEscapeButton = false;
 
 // données du monde
 var worldDatas = {
@@ -563,6 +568,7 @@ var reseted = false;
 function resetWorld() {
     reseted = true;
     localStorage.clear();
+    window.location.reload();
 }
 //#endregion
 
@@ -599,7 +605,7 @@ function loop() {
         worldDatas.playerY = getYProcedural(worldDatas.playerX);
     }
     
-    if (!worldDatas.inventory.opened && !worldDatas.isDead) {
+    if (!worldDatas.inventory.opened && !worldDatas.isDead && !isEscapeMenuOpened) {
         //#region PHISIQUES
         // vertical
         // sol
@@ -938,15 +944,37 @@ function loop() {
             worldDatas.isDead = true;
         }
         //si on clique sur un les boutons
-        if (isClicked && isHoveringFirstButton) {
+        if (isClicked && isHoveringFirstDeathButton) {
             worldDatas.isDead = false;
-            worldDatas.inventory.content = [];
+            worldDatas.inventory.content =  [
+                null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null
+            ];
+            worldDatas.inventory.stackSize = [
+                0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0
+            ];
             worldDatas.playerLife = 10;
-        } else if (isClicked && isHoveringSecondButton) {
+        } else if (isClicked && isHoveringSecondDeathButton) {
             resetWorld();
         }
+
     //#endregion
-    
+    //#region ESCAPE_MENU
+    //escape_menu
+    //si on clique sur un les boutons
+    if (isClicked && isHoveringFirstEscapeButton) {
+        resetWorld();
+    } else if (isClicked && isHoveringSecondEscapeButton) {
+        //code du deuxieme bouton
+    }
+
+    //#endregion
+
     //#region INVENTAIRE
     if (worldDatas.inventory.opened) {
         var cellX = parseInt((mouseScreenPosX - canvas.width / 2 + GUI_SIZE * 4.6) / GUI_SIZE) - ((mouseScreenPosX - canvas.width / 2 + GUI_SIZE * 4.6) < 0 ? 1 : 0);
@@ -991,7 +1019,7 @@ function loop() {
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     //compte les image des animations
-    if (!worldDatas.isDead) {
+    if (!worldDatas.isDead && !isEscapeMenuOpened) {
         animationFrameCounter++;
         borderFrameCounter++;
         if (borderFrameCounter >= 1000000) {
@@ -1054,7 +1082,7 @@ function loop() {
         var itemsMargin = 10;
         var hotbarStartX = canvas.width / 2 - hotbarCellSize * 9 / 2;
         var fontSize = GUI_SIZE * 0.5;
-        canvas.fillStyle = "white";
+        context.fillStyle = "white";
         context.font = fontSize.toString() + "px roboto";
         for (var cellIndex = 0; cellIndex < 9; cellIndex ++) {
             // case
@@ -1170,10 +1198,12 @@ function loop() {
         }
 
         //dessiner de mort
+        isHoveringFirstDeathButton = false;
+        isHoveringSecondDeathButton = false;
         if (worldDatas.isDead) {
             context.fillStyle = "#FF000070";
             context.fillRect(0, 0, canvas.width, canvas.height);
-            context.fillStyle = "#FFFFFF";
+            context.fillStyle = "white";
             context.font = (GUI_SIZE * 0.5).toString() + "px roboto";
             //premier bouton
             var firstButtonStartX = canvas.width / 2 - GUI_SIZE * 4;
@@ -1181,10 +1211,9 @@ function loop() {
             if (mouseScreenPosX > firstButtonStartX && mouseScreenPosX < firstButtonStartX + GUI_SIZE * 8 &&
                 mouseScreenPosY > firstButtonStartY && mouseScreenPosY < firstButtonStartY + GUI_SIZE) {
                 context.drawImage(button_selected, firstButtonStartX, firstButtonStartY, GUI_SIZE * 8, GUI_SIZE);
-                isHoveringFirstButton = true;
+                isHoveringFirstDeathButton = true;
             } else {
                 context.drawImage(button_unselected, firstButtonStartX, firstButtonStartY, GUI_SIZE * 8, GUI_SIZE);
-                isHoveringFirstButton = false;
             }
             context.fillText("respawn", firstButtonStartX + GUI_SIZE * 3, firstButtonStartY + GUI_SIZE / 2 + GUI_SIZE / 8);
             //deuxieme bouton
@@ -1193,12 +1222,43 @@ function loop() {
             if (mouseScreenPosX > secondButtonStartX && mouseScreenPosX < secondButtonStartX + GUI_SIZE * 8 &&
                 mouseScreenPosY > secondButtonStartY && mouseScreenPosY < secondButtonStartY + GUI_SIZE) {
                 context.drawImage(button_selected, secondButtonStartX, secondButtonStartY, GUI_SIZE * 8, GUI_SIZE);
-                isHoveringSecondButton = true;
+                isHoveringSecondDeathButton = true;
             } else {
                 context.drawImage(button_unselected, secondButtonStartX, secondButtonStartY, GUI_SIZE * 8, GUI_SIZE);
-                isHoveringSecondButton = false;
             }
             context.fillText("new game", secondButtonStartX + GUI_SIZE * 3, secondButtonStartY + GUI_SIZE / 2 + GUI_SIZE / 8);
+        }
+
+        //dessine le menu echap
+        if (isEscapeMenuOpened) {
+            isHoveringFirstEscapeButton = false;
+            isHoveringSecondEscapeButton = false;
+            context.fillStyle = "#00000090"
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.fillStyle = "white";
+            context.font = (GUI_SIZE * 0.5).toString() + "px roboto";
+            //premier bouton
+            var firstButtonStartX = canvas.width / 2 - GUI_SIZE * 4;
+            var firstButtonStartY = canvas.height / 4;
+            if (mouseScreenPosX > firstButtonStartX && mouseScreenPosX < firstButtonStartX + GUI_SIZE * 8 &&
+                mouseScreenPosY > firstButtonStartY && mouseScreenPosY < firstButtonStartY + GUI_SIZE) {
+                context.drawImage(button_selected, firstButtonStartX, firstButtonStartY, GUI_SIZE * 8, GUI_SIZE);
+                isHoveringFirstEscapeButton = true;
+            } else {
+                context.drawImage(button_unselected, firstButtonStartX, firstButtonStartY, GUI_SIZE * 8, GUI_SIZE);
+            }
+            context.fillText("new game", firstButtonStartX + GUI_SIZE * 3, firstButtonStartY + GUI_SIZE / 2 + GUI_SIZE / 8);
+            //deuxieme bouton
+            var secondButtonStartX = canvas.width / 2 - GUI_SIZE * 4;
+            var secondButtonStartY = canvas.height / 4 + canvas.height / 8;
+            if (mouseScreenPosX > secondButtonStartX && mouseScreenPosX < secondButtonStartX + GUI_SIZE * 8 &&
+                mouseScreenPosY > secondButtonStartY && mouseScreenPosY < secondButtonStartY + GUI_SIZE) {
+                context.drawImage(button_selected, secondButtonStartX, secondButtonStartY, GUI_SIZE * 8, GUI_SIZE);
+                isHoveringSecondEscapeButton = true;
+            } else {
+                context.drawImage(button_unselected, secondButtonStartX, secondButtonStartY, GUI_SIZE * 8, GUI_SIZE);
+            }
+            context.fillText("settings", secondButtonStartX + GUI_SIZE * 3, secondButtonStartY + GUI_SIZE / 2 + GUI_SIZE / 8);
         }
         //#endregion
 
@@ -1240,6 +1300,7 @@ document.addEventListener('mousedown', function(e) {
     }
 });
 document.addEventListener('keydown', function(e) {
+    console.log(e.which);
     // droite
     if (e.which === 39 || e.which === 68) {
         isRightPressed = true;
@@ -1252,9 +1313,13 @@ document.addEventListener('keydown', function(e) {
     if (e.which === 32 && isABlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + 5)) {
         worldDatas.playerYVelocity = -JUMP_FORCE;
     }
-    // enventaire (e)
+    // inventaire (e)
     if (e.which === 69) {
         worldDatas.inventory.opened = !worldDatas.inventory.opened;
+    }
+    // escape
+    if (e.which === 27) {
+        isEscapeMenuOpened = !isEscapeMenuOpened;
     }
 });
 document.addEventListener('keyup', function(e) {
