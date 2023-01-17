@@ -1267,9 +1267,9 @@ function loop() {
     //#endregion
 
     isClicked = false;
-    isRightClicked = false;
     isZombieBlockedOnSide = false;
     isANewPortal = false;
+    MicrosoftGrabLoop();
     requestAnimationFrame(loop);
 }
 //#region INPUTS
@@ -1299,6 +1299,12 @@ document.addEventListener('mousedown', function(e) {
         isRightClicked = true;
     }
 });
+document.addEventListener('mouseup', function(e) {
+    //detecte si on clique droit
+    if (e.which === 3) {
+        isRightClicked = false;
+    }
+});
 document.addEventListener('keydown', function(e) {
     console.log(e.which);
     // droite
@@ -1320,6 +1326,14 @@ document.addEventListener('keydown', function(e) {
     // escape
     if (e.which === 27) {
         isEscapeMenuOpened = !isEscapeMenuOpened;
+    }
+    // mgrab
+    if (e.which ===  13) {
+        if (step === 0) {
+            Next();
+        } else {
+            SendDatas();
+        }
     }
 });
 document.addEventListener('keyup', function(e) {
