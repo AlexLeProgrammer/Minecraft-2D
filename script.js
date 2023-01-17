@@ -137,52 +137,52 @@ lavaAnimationFrames[19].src = 'sprites/blocks/lava_animation_frames/lava_ (20).p
 
 //textures des blocs
 var blockTextures = [new Image(), new Image(), new Image(), new Image(), new Image(), new Image(),
-new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image()];
-blockTextures[0].src = 'sprites/blocks/oak_plank.png';
-blockTextures[1].src = 'sprites/blocks/grass.png';
-blockTextures[2].src = 'sprites/blocks/dirt.png';
-blockTextures[3].src = 'sprites/blocks/obsidian.png';
-blockTextures[4].src = 'sprites/blocks/sand.png';
-blockTextures[5].src = 'sprites/blocks/stone.png';
-blockTextures[6].src = 'sprites/Items/flint_and_steel.png';
-blockTextures[7].src = 'sprites/blocks/oak_log.png';
-blockTextures[8].src = 'sprites/blocks/oak_leaves.png';
-blockTextures[9].src = 'sprites/blocks/netherrack.png';
-blockTextures[10].src = 'sprites/Items/lava_bucket.png';
-blockTextures[11].src = 'sprites/blocks/portal_animation_frames/portal_ (1).png';
-blockTextures[12].src = 'sprites/blocks/bedrock.png';
-
-const BLOCK_HITBOXES = [true, true, true, true, true, true, false, true, true, true, false, false, true];
-//#endregion
-
-//#region variables
-var renderDistance = 2;
-
-//variables des inputs
-var isRightPressed = false;
-var isLeftPressed = false;
-var isClicked = false;
-var isRightClicked = false;
-
-//variables des blocs
-var blockX = 0;
-var blockY = 0;
-var usedHotbarID = 0;
-var canPlaceAir = false;
-var gravity = true;
-var cameraX = 0;
-var cameraY = 0;
-var mouseScreenPosX = 0;
-var mouseScreenPosY = 0;
-var mouseWorldPosX = 0;
-var mouseWorldPosY = 0;
-
-//generation procedurale
-var proceduralDetail = 3;
-var proceduralSize = 500;
-var proceduralHeight = 300;
-
-//zombie
+    new Image(), new Image(), new Image(), new Image(), new Image(), new Image(), new Image()];
+    blockTextures[0].src = 'sprites/blocks/oak_plank.png';
+    blockTextures[1].src = 'sprites/blocks/grass.png';
+    blockTextures[2].src = 'sprites/blocks/dirt.png';
+    blockTextures[3].src = 'sprites/blocks/obsidian.png';
+    blockTextures[4].src = 'sprites/blocks/sand.png';
+    blockTextures[5].src = 'sprites/blocks/stone.png';
+    blockTextures[6].src = 'sprites/Items/flint_and_steel.png';
+    blockTextures[7].src = 'sprites/blocks/oak_log.png';
+    blockTextures[8].src = 'sprites/blocks/oak_leaves.png';
+    blockTextures[9].src = 'sprites/blocks/netherrack.png';
+    blockTextures[10].src = 'sprites/Items/lava_bucket.png';
+    blockTextures[11].src = 'sprites/blocks/portal_animation_frames/portal_ (1).png';
+    blockTextures[12].src = 'sprites/blocks/bedrock.png';
+    
+    const BLOCK_HITBOXES = [true, true, true, true, true, true, false, true, true, true, false, false, true];
+    //#endregion
+    
+    //#region variables
+    var renderDistance = 2;
+    
+    //variables des inputs
+    var isRightPressed = false;
+    var isLeftPressed = false;
+    var isClicked = false;
+    var isRightClicked = false;
+    
+    //variables des blocs
+    var blockX = 0;
+    var blockY = 0;
+    var usedHotbarID = 0;
+    var canPlaceAir = false;
+    var gravity = true;
+    var cameraX = 0;
+    var cameraY = 0;
+    var mouseScreenPosX = 0;
+    var mouseScreenPosY = 0;
+    var mouseWorldPosX = 0;
+    var mouseWorldPosY = 0;
+    
+    //generation procedurale
+    var proceduralDetail = 3;
+    var proceduralSize = 500;
+    var proceduralHeight = 300;
+    
+    //zombie
 var zombieX = 500;
 var zombieY = -200;
 var zombieYVelocity = 0;
@@ -208,6 +208,17 @@ var emptyHeartSprite = new Image();
 emptyHeartSprite.src = 'sprites/gui/empty_heart.png';
 var halfHeartSprite = new Image();
 halfHeartSprite.src = 'sprites/gui/half_heart.png';
+var button_unselected = new Image();
+button_unselected.src = 'sprites/gui/button_unselected.png';
+var button_selected = new Image();
+button_selected.src = 'sprites/gui/button_selected.png';
+var isHoveringFirstDeathButton = false;
+var isHoveringSecondDeathButton = false;
+
+//menu echap
+var isEscapeMenuOpened = false;
+var isHoveringFirstEscapeButton = false;
+var isHoveringSecondEscapeButton = false;
 
 // données du monde
 var worldDatas = {
@@ -216,6 +227,7 @@ var worldDatas = {
     playerY: 0,
     playerLife: 10,
     fireTime: 0,
+    isDead: false,
     // mouvement du joueur
     playerYVelocity: 0,
     // terrain
@@ -319,7 +331,7 @@ function getChunkBlocks(x) {
     var isModified = false;
     if (worldDatas.isInNether === false) {
         for (var i = 0; i < worldDatas.modifiedChunks.length; i++) {
-            if (parseInt(parseInt(worldDatas.modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (worldDatas.modifiedChunks[i][0][0] < 0 ? 1 : 0) == x) {
+            if (parseInt(parseInt(worldDatas.modifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (worldDatas.modifiedChunks[i][0][0] < 0 ? 1 : 0) === x) {
                 isModified = true;
                 for (var j = 0; j < worldDatas.modifiedChunks[i].length; j++) {
                     result.push(worldDatas.modifiedChunks[i][j]);
@@ -328,7 +340,7 @@ function getChunkBlocks(x) {
         }
     } else {
         for (var i = 0; i < worldDatas.netherModifiedChunks.length; i++) {
-            if (parseInt(parseInt(worldDatas.netherModifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (worldDatas.netherModifiedChunks[i][0][0] < 0 ? 1 : 0) == x) {
+            if (parseInt(parseInt(worldDatas.netherModifiedChunks[i][0][0] / BLOCKSIZE) / 16) - (worldDatas.netherModifiedChunks[i][0][0] < 0 ? 1 : 0) === x) {
                 isModified = true;
                 for (var j = 0; j < worldDatas.netherModifiedChunks[i].length; j++) {
                     result.push(worldDatas.netherModifiedChunks[i][j]);
@@ -556,6 +568,7 @@ var reseted = false;
 function resetWorld() {
     reseted = true;
     localStorage.clear();
+    window.location.reload();
 }
 //#endregion
 
@@ -592,7 +605,7 @@ function loop() {
         worldDatas.playerY = getYProcedural(worldDatas.playerX);
     }
     
-    if (!worldDatas.inventory.opened) {
+    if (!worldDatas.inventory.opened && !worldDatas.isDead && !isEscapeMenuOpened) {
         //#region PHISIQUES
         // vertical
         // sol
@@ -682,6 +695,7 @@ function loop() {
             }
             worldDatas.fireTime--;
         }
+
         //#endregion
 
         //#region POSER/CASSER
@@ -722,7 +736,7 @@ function loop() {
                 (isABlock(blockX + BLOCKSIZE * 0.5, blockY - BLOCKSIZE * 0.5) && !isASpecificBlock(blockX + BLOCKSIZE * 0.5, blockY - BLOCKSIZE * 0.5, 6)) ||
                 (isABlock(blockX + BLOCKSIZE * 1.5, blockY + BLOCKSIZE * 0.5) && !isASpecificBlock(blockX + BLOCKSIZE * 1.5, blockY + BLOCKSIZE * 0.5, 6)) ||
                 (isABlock(blockX - BLOCKSIZE * 0.5, blockY + BLOCKSIZE * 0.5) && !isASpecificBlock(blockX - BLOCKSIZE * 0.5, blockY + BLOCKSIZE * 0.5, 6)) || canPlaceAir) {
-                    if (chunkIndex == worldDatas.modifiedChunks.length) {
+                    if (chunkIndex === worldDatas.modifiedChunks.length) {
                         worldDatas.modifiedChunks.push([]);
                     }
                     var newBlock = [blockX, blockY, worldDatas.inventory.content[usedHotbarID], 0];
@@ -752,7 +766,7 @@ function loop() {
                 (isABlock(blockX + BLOCKSIZE * 0.5, blockY - BLOCKSIZE * 0.5) && !isASpecificBlock(blockX + BLOCKSIZE * 0.5, blockY - BLOCKSIZE * 0.5, 6)) ||
                 (isABlock(blockX + BLOCKSIZE * 1.5, blockY + BLOCKSIZE * 0.5) && !isASpecificBlock(blockX + BLOCKSIZE * 1.5, blockY + BLOCKSIZE * 0.5, 6)) ||
                 (isABlock(blockX - BLOCKSIZE * 0.5, blockY + BLOCKSIZE * 0.5) && !isASpecificBlock(blockX - BLOCKSIZE * 0.5, blockY + BLOCKSIZE * 0.5, 6)) || canPlaceAir) {
-                    if (netherChunkIndex == worldDatas.netherModifiedChunks.length) {
+                    if (netherChunkIndex === worldDatas.netherModifiedChunks.length) {
                         worldDatas.netherModifiedChunks.push([]);
                     }
                     var newBlock = [blockX, blockY, worldDatas.inventory.content[usedHotbarID], 0];
@@ -915,7 +929,7 @@ function loop() {
                     }
                 }
                 for (var i = 0; i < worldDatas.netherModifiedChunks[netherChunkIndex].length; i++) {
-                    if (blockX == worldDatas.netherModifiedChunks[netherChunkIndex][i][0] && blockY == worldDatas.netherModifiedChunks[netherChunkIndex][i][1]) {
+                    if (blockX === worldDatas.netherModifiedChunks[netherChunkIndex][i][0] && blockY === worldDatas.netherModifiedChunks[netherChunkIndex][i][1]) {
                         worldDatas.netherModifiedChunks[netherChunkIndex].splice(i, 1);
                     }
                 }
@@ -924,6 +938,42 @@ function loop() {
 
         //#endregion
     }
+    //#region MORT
+    //mort
+        if (worldDatas.playerLife <= 0) {
+            worldDatas.isDead = true;
+        }
+        //si on clique sur un les boutons
+        if (isClicked && isHoveringFirstDeathButton) {
+            worldDatas.isDead = false;
+            worldDatas.inventory.content =  [
+                null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null
+            ];
+            worldDatas.inventory.stackSize = [
+                0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0
+            ];
+            worldDatas.playerLife = 10;
+        } else if (isClicked && isHoveringSecondDeathButton) {
+            resetWorld();
+        }
+
+    //#endregion
+    //#region ESCAPE_MENU
+    //escape_menu
+    //si on clique sur un les boutons
+    if (isClicked && isHoveringFirstEscapeButton) {
+        resetWorld();
+    } else if (isClicked && isHoveringSecondEscapeButton) {
+        //code du deuxieme bouton
+    }
+
+    //#endregion
 
     //#region INVENTAIRE
     if (worldDatas.inventory.opened) {
@@ -969,15 +1019,17 @@ function loop() {
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     //compte les image des animations
-    animationFrameCounter++;
-    borderFrameCounter++;
-    if (borderFrameCounter >= 1000000) {
-        borderFrameCounter = 0;
+    if (!worldDatas.isDead && !isEscapeMenuOpened) {
+        animationFrameCounter++;
+        borderFrameCounter++;
+        if (borderFrameCounter >= 1000000) {
+            borderFrameCounter = 0;
+        }
+        if ((parseInt(lavaFrameCounter / 8) === 0 && lavaFrameWay === -1) || (parseInt(lavaFrameCounter / 8) === lavaAnimationFrames.length - 1 && lavaFrameWay === 1)) {
+            lavaFrameWay *= -1;
+        }
+        lavaFrameCounter += lavaFrameWay;
     }
-    if ((parseInt(lavaFrameCounter / 8) === 0 && lavaFrameWay === -1) || (parseInt(lavaFrameCounter / 8) === lavaAnimationFrames.length - 1 && lavaFrameWay === 1)) {
-        lavaFrameWay *= -1;
-    }
-    lavaFrameCounter += lavaFrameWay;
     for (var i = playerChunk - renderDistance; i <= playerChunk + renderDistance ; i++) {
         var blocks = getChunkBlocks(i);
         for (var j = 0; j < blocks.length; j++) {
@@ -1054,23 +1106,30 @@ function loop() {
         // dessine les coeurs
         var heartSize = GUI_SIZE / 2;
         var heartHeight = 80;
-        for (var heartIndex = 0; heartIndex < worldDatas.playerLife; heartIndex ++) {
-            context.drawImage(fullHeartSprite, hotbarStartX + heartIndex * heartSize,
-            canvas.height - heartSize - heartHeight, heartSize, heartSize);
-            if (worldDatas.playerLife / 0.5 % 2 != 0 && (heartIndex === worldDatas.playerLife - 1 || heartIndex === worldDatas.playerLife - 0.5)) {
-                context.drawImage(halfHeartSprite, hotbarStartX + heartIndex * heartSize,
+        if (!worldDatas.isDead) {
+            for (var heartIndex = 0; heartIndex < worldDatas.playerLife; heartIndex ++) {
+                context.drawImage(fullHeartSprite, hotbarStartX + heartIndex * heartSize,
                 canvas.height - heartSize - heartHeight, heartSize, heartSize);
-            }
-            if (worldDatas.playerLife < 10 && (heartIndex === worldDatas.playerLife - 1 || heartIndex === worldDatas.playerLife - 0.5)) {
-                for (var heartIndex = worldDatas.playerLife; heartIndex < 10; heartIndex ++) {
-                    if (worldDatas.playerLife / 0.5 % 2 != 0 && heartIndex === worldDatas.playerLife) {
-                        heartIndex += 0.5;
-                    }
-                    if (heartIndex != 10) {
-                        context.drawImage(emptyHeartSprite, hotbarStartX + heartIndex * heartSize,
-                        canvas.height - heartSize - heartHeight, heartSize, heartSize);
+                if (worldDatas.playerLife / 0.5 % 2 != 0 && (heartIndex === worldDatas.playerLife - 1 || heartIndex === worldDatas.playerLife - 0.5)) {
+                    context.drawImage(halfHeartSprite, hotbarStartX + heartIndex * heartSize,
+                    canvas.height - heartSize - heartHeight, heartSize, heartSize);
+                }
+                if (worldDatas.playerLife < 10 && (heartIndex === worldDatas.playerLife - 1 || heartIndex === worldDatas.playerLife - 0.5)) {
+                    for (var heartIndex = worldDatas.playerLife; heartIndex < 10; heartIndex ++) {
+                        if (worldDatas.playerLife / 0.5 % 2 != 0 && heartIndex === worldDatas.playerLife) {
+                            heartIndex += 0.5;
+                        }
+                        if (heartIndex != 10) {
+                            context.drawImage(emptyHeartSprite, hotbarStartX + heartIndex * heartSize,
+                            canvas.height - heartSize - heartHeight, heartSize, heartSize);
+                        }
                     }
                 }
+            }
+        } else {
+            for (var heartIndex = 0; heartIndex < 10; heartIndex++) {
+                context.drawImage(emptyHeartSprite, hotbarStartX + heartIndex * heartSize,
+                canvas.height - heartSize - heartHeight, heartSize, heartSize);
             }
         }
 
@@ -1137,6 +1196,70 @@ function loop() {
                 );
             }
         }
+
+        //dessiner de mort
+        isHoveringFirstDeathButton = false;
+        isHoveringSecondDeathButton = false;
+        if (worldDatas.isDead) {
+            context.fillStyle = "#FF000070";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.fillStyle = "white";
+            context.font = (GUI_SIZE * 0.5).toString() + "px roboto";
+            //premier bouton
+            var firstButtonStartX = canvas.width / 2 - GUI_SIZE * 4;
+            var firstButtonStartY = canvas.height / 2;
+            if (mouseScreenPosX > firstButtonStartX && mouseScreenPosX < firstButtonStartX + GUI_SIZE * 8 &&
+                mouseScreenPosY > firstButtonStartY && mouseScreenPosY < firstButtonStartY + GUI_SIZE) {
+                context.drawImage(button_selected, firstButtonStartX, firstButtonStartY, GUI_SIZE * 8, GUI_SIZE);
+                isHoveringFirstDeathButton = true;
+            } else {
+                context.drawImage(button_unselected, firstButtonStartX, firstButtonStartY, GUI_SIZE * 8, GUI_SIZE);
+            }
+            context.fillText("respawn", firstButtonStartX + GUI_SIZE * 3, firstButtonStartY + GUI_SIZE / 2 + GUI_SIZE / 8);
+            //deuxieme bouton
+            var secondButtonStartX = canvas.width / 2 - GUI_SIZE * 4;
+            var secondButtonStartY = canvas.height / 2 + canvas.height / 8;
+            if (mouseScreenPosX > secondButtonStartX && mouseScreenPosX < secondButtonStartX + GUI_SIZE * 8 &&
+                mouseScreenPosY > secondButtonStartY && mouseScreenPosY < secondButtonStartY + GUI_SIZE) {
+                context.drawImage(button_selected, secondButtonStartX, secondButtonStartY, GUI_SIZE * 8, GUI_SIZE);
+                isHoveringSecondDeathButton = true;
+            } else {
+                context.drawImage(button_unselected, secondButtonStartX, secondButtonStartY, GUI_SIZE * 8, GUI_SIZE);
+            }
+            context.fillText("new game", secondButtonStartX + GUI_SIZE * 3, secondButtonStartY + GUI_SIZE / 2 + GUI_SIZE / 8);
+        }
+
+        //dessine le menu echap
+        if (isEscapeMenuOpened) {
+            isHoveringFirstEscapeButton = false;
+            isHoveringSecondEscapeButton = false;
+            context.fillStyle = "#00000090"
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.fillStyle = "white";
+            context.font = (GUI_SIZE * 0.5).toString() + "px roboto";
+            //premier bouton
+            var firstButtonStartX = canvas.width / 2 - GUI_SIZE * 4;
+            var firstButtonStartY = canvas.height / 4;
+            if (mouseScreenPosX > firstButtonStartX && mouseScreenPosX < firstButtonStartX + GUI_SIZE * 8 &&
+                mouseScreenPosY > firstButtonStartY && mouseScreenPosY < firstButtonStartY + GUI_SIZE) {
+                context.drawImage(button_selected, firstButtonStartX, firstButtonStartY, GUI_SIZE * 8, GUI_SIZE);
+                isHoveringFirstEscapeButton = true;
+            } else {
+                context.drawImage(button_unselected, firstButtonStartX, firstButtonStartY, GUI_SIZE * 8, GUI_SIZE);
+            }
+            context.fillText("new game", firstButtonStartX + GUI_SIZE * 3, firstButtonStartY + GUI_SIZE / 2 + GUI_SIZE / 8);
+            //deuxieme bouton
+            var secondButtonStartX = canvas.width / 2 - GUI_SIZE * 4;
+            var secondButtonStartY = canvas.height / 4 + canvas.height / 8;
+            if (mouseScreenPosX > secondButtonStartX && mouseScreenPosX < secondButtonStartX + GUI_SIZE * 8 &&
+                mouseScreenPosY > secondButtonStartY && mouseScreenPosY < secondButtonStartY + GUI_SIZE) {
+                context.drawImage(button_selected, secondButtonStartX, secondButtonStartY, GUI_SIZE * 8, GUI_SIZE);
+                isHoveringSecondEscapeButton = true;
+            } else {
+                context.drawImage(button_unselected, secondButtonStartX, secondButtonStartY, GUI_SIZE * 8, GUI_SIZE);
+            }
+            context.fillText("settings", secondButtonStartX + GUI_SIZE * 3, secondButtonStartY + GUI_SIZE / 2 + GUI_SIZE / 8);
+        }
         //#endregion
 
     //#region SAUVEGARDE
@@ -1183,22 +1306,28 @@ document.addEventListener('mouseup', function(e) {
     }
 });
 document.addEventListener('keydown', function(e) {
+    console.log(e.which);
     // droite
-    if (e.which === 39 || e.which == 68) {
+    if (e.which === 39 || e.which === 68) {
         isRightPressed = true;
     }
     // gauche
-    if (e.which === 37 || e.which == 65) {
+    if (e.which === 37 || e.which === 65) {
         isLeftPressed = true;
     }
     // saut
     if (e.which === 32 && isABlock(worldDatas.playerX, worldDatas.playerY + PLAYER_HEIGHT / 2 + 5)) {
         worldDatas.playerYVelocity = -JUMP_FORCE;
     }
-    // enventaire (e)
+    // inventaire (e)
     if (e.which === 69) {
         worldDatas.inventory.opened = !worldDatas.inventory.opened;
     }
+    // escape
+    if (e.which === 27) {
+        isEscapeMenuOpened = !isEscapeMenuOpened;
+    }
+    // mgrab
     if (e.which ===  13) {
         if (step === 0) {
             Next();
@@ -1210,11 +1339,11 @@ document.addEventListener('keydown', function(e) {
 document.addEventListener('keyup', function(e) {
     
     // droite
-    if (e.which === 39 || e.which == 68) {
+    if (e.which === 39 || e.which === 68) {
         isRightPressed = false;
     }
     // gauche
-    if (e.which === 37 || e.which == 65) {
+    if (e.which === 37 || e.which === 65) {
         isLeftPressed = false;
     }
 });
