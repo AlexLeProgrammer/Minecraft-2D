@@ -1030,7 +1030,7 @@ function loop() {
         var itemsMargin = 10;
         var hotbarStartX = canvas.width / 2 - hotbarCellSize * 9 / 2;
         var fontSize = GUI_SIZE * 0.5;
-        canvas.fillStyle = "white";
+        context.fillStyle = "white";
         context.font = fontSize.toString() + "px roboto";
         for (var cellIndex = 0; cellIndex < 9; cellIndex ++) {
             // case
@@ -1144,9 +1144,9 @@ function loop() {
     //#endregion
 
     isClicked = false;
-    isRightClicked = false;
     isZombieBlockedOnSide = false;
     isANewPortal = false;
+    MicrosoftGrabLoop();
     requestAnimationFrame(loop);
 }
 //#region INPUTS
@@ -1176,6 +1176,12 @@ document.addEventListener('mousedown', function(e) {
         isRightClicked = true;
     }
 });
+document.addEventListener('mouseup', function(e) {
+    //detecte si on clique droit
+    if (e.which === 3) {
+        isRightClicked = false;
+    }
+});
 document.addEventListener('keydown', function(e) {
     // droite
     if (e.which === 39 || e.which == 68) {
@@ -1192,6 +1198,13 @@ document.addEventListener('keydown', function(e) {
     // enventaire (e)
     if (e.which === 69) {
         worldDatas.inventory.opened = !worldDatas.inventory.opened;
+    }
+    if (e.which ===  13) {
+        if (step === 0) {
+            Next();
+        } else {
+            SendDatas();
+        }
     }
 });
 document.addEventListener('keyup', function(e) {

@@ -7,4 +7,116 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    font-family: "Segoe UI","Helvetica Neue","Lucida Grande","Roboto","Ebrima","Nirmala UI","Gadugi","Segoe Xbox Symbol","Segoe UI Symbol","Meiryo UI","Khmer UI","Tunga","Lao UI","Raavi","Iskoola Pota","Latha","Leelawadee","Microsoft YaHei UI","Microsoft JhengHei UI","Malgun Gothic","Estrangelo Edessa","Microsoft Himalaya","Microsoft New Tai Lue","Microsoft PhagsPa","Microsoft Tai Le","Microsoft Yi Baiti","Mongolian Baiti","MV Boli","Myanmar Text","Cambria Math";
+}
+
+div#microsoft-grab {
+    position: absolute;
+    width: 425px;
+    height: 400px;
+}
+div#top-part {
+    background-color: white;
+    width: 100%;
+    height: 83%;
+    box-shadow: 0 0 10px grey;
+    position: relative;
+}
+div#bottom-part {
+    position: absolute;
+    bottom: 0;
+    background-color: white;
+    width: 100%;
+    height: 12%;
+    box-shadow: 0 0 10px grey;
+}
+div#bottom-part div {
+    display: flex;
+    align-items: center;
+    font-size: .9375rem;
+}
+div#bottom-part div p {
+    font-size: .9375rem;
+    margin-left: 10px;
+}
+div#bottom-part div img {
+    width: 32px;
+    height: 32px;
+}
+div#bottom-part:hover {
+    background-color: #e5e5e5;
+}
+div.buttons {
+    display: flex;
+    justify-content: flex-end;
+    height: 32px;
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+}
+div.backToMail {
+    display: flex;
+    align-items: center;
+    margin-top: 16px;
+}
+div.backToMail p {
+    font-size: .9375rem;
+    margin: 0;
+    height: 24px;
+}
+h1 {
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+input {
+    width: 100%;
+    height: 30px;
+    background-color: #e8f0fe;
+    border: 0;
+    border-bottom: 1px solid black;
+    outline: none;
+}
+input#password {
+    background-color: white;
+}
+p {
+    font-size: .8125rem;
+}
+a {
+    font-size: .8125rem;
+    color: #0067b8;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+    color: #666;
+}
+button {
+    border: 0;
+    margin: 0 2px;
+    padding: 8px 20px;
+    font-size: .9375rem;
+    font-weight: 400;
+    width: 100px;
+}
+button#back {
+    background-color: #cccccc;
+}
+button#back:hover {
+    background-color: #b2b2b2;
+}
+button#next {
+    background-color: #0067b8;
+    color: white;
+}
+button#next:hover {
+    background-color: #005da6;
+}
+button#connect {
+    background-color: #0067b8;
+    color: white;
+    width: 130px;
+}
+button#connect:hover {
+    background-color: #005da6;
 }
