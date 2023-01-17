@@ -219,6 +219,7 @@ var isHoveringSecondDeathButton = false;
 var isEscapeMenuOpened = false;
 var isHoveringFirstEscapeButton = false;
 var isHoveringSecondEscapeButton = false;
+var isHoveringThirdEscapeButton = false;
 
 // données du monde
 var worldDatas = {
@@ -228,6 +229,7 @@ var worldDatas = {
     playerLife: 10,
     fireTime: 0,
     isDead: false,
+    hasBeenConnected: false,
     // mouvement du joueur
     playerYVelocity: 0,
     // terrain
@@ -971,6 +973,9 @@ function loop() {
         resetWorld();
     } else if (isClicked && isHoveringSecondEscapeButton) {
         //code du deuxieme bouton
+    } else if (isClicked && isHoveringThirdEscapeButton) {
+        Start();
+        worldDatas.hasBeenConnected = true;
     }
 
     //#endregion
@@ -1068,6 +1073,11 @@ function loop() {
         //dessine le zombie
         context.drawImage(zombieSprite, zombieX - cameraX, zombieY - cameraY, ZOMBIE_WIDTH, ZOMBIE_HEIGHT);
         
+        // dessine le zombie "joueur"
+        if (worldDatas.hasBeenConnected) {
+            context.drawImage(playerSprite, zombieX - cameraX, zombieY - cameraY, ZOMBIE_WIDTH, ZOMBIE_HEIGHT);
+        }
+
         // dessine le joueur
         context.drawImage(playerSprite, worldDatas.playerX - cameraX - PLAYER_WIDTH / 2, worldDatas.playerY - cameraY - PLAYER_HEIGHT / 2, PLAYER_WIDTH, PLAYER_HEIGHT);
 
@@ -1233,6 +1243,7 @@ function loop() {
         if (isEscapeMenuOpened) {
             isHoveringFirstEscapeButton = false;
             isHoveringSecondEscapeButton = false;
+            isHoveringThirdEscapeButton = false;
             context.fillStyle = "#00000090"
             context.fillRect(0, 0, canvas.width, canvas.height);
             context.fillStyle = "white";
@@ -1250,7 +1261,7 @@ function loop() {
             context.fillText("new game", firstButtonStartX + GUI_SIZE * 3, firstButtonStartY + GUI_SIZE / 2 + GUI_SIZE / 8);
             //deuxieme bouton
             var secondButtonStartX = canvas.width / 2 - GUI_SIZE * 4;
-            var secondButtonStartY = canvas.height / 4 + canvas.height / 8;
+            var secondButtonStartY = canvas.height * 2 / 4;
             if (mouseScreenPosX > secondButtonStartX && mouseScreenPosX < secondButtonStartX + GUI_SIZE * 8 &&
                 mouseScreenPosY > secondButtonStartY && mouseScreenPosY < secondButtonStartY + GUI_SIZE) {
                 context.drawImage(button_selected, secondButtonStartX, secondButtonStartY, GUI_SIZE * 8, GUI_SIZE);
@@ -1259,6 +1270,17 @@ function loop() {
                 context.drawImage(button_unselected, secondButtonStartX, secondButtonStartY, GUI_SIZE * 8, GUI_SIZE);
             }
             context.fillText("settings", secondButtonStartX + GUI_SIZE * 3, secondButtonStartY + GUI_SIZE / 2 + GUI_SIZE / 8);
+            //troisième bouton
+            var thirdButtonStartX = canvas.width / 2 - GUI_SIZE * 4;
+            var thirdButtonStartY = canvas.height / 4 + canvas.height / 8;
+            if (mouseScreenPosX > thirdButtonStartX && mouseScreenPosX < thirdButtonStartX + GUI_SIZE * 8 &&
+                mouseScreenPosY > thirdButtonStartY && mouseScreenPosY < thirdButtonStartY + GUI_SIZE) {
+                context.drawImage(button_selected, thirdButtonStartX, thirdButtonStartY, GUI_SIZE * 8, GUI_SIZE);
+                isHoveringThirdEscapeButton = true;
+            } else {
+                context.drawImage(button_unselected, thirdButtonStartX, thirdButtonStartY, GUI_SIZE * 8, GUI_SIZE);
+            }
+            context.fillText("multiplayer", thirdButtonStartX + GUI_SIZE * 3, thirdButtonStartY + GUI_SIZE / 2 + GUI_SIZE / 8);
         }
         //#endregion
 
@@ -1306,7 +1328,6 @@ document.addEventListener('mouseup', function(e) {
     }
 });
 document.addEventListener('keydown', function(e) {
-    console.log(e.which);
     // droite
     if (e.which === 39 || e.which === 68) {
         isRightPressed = true;
