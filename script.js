@@ -453,6 +453,7 @@ function getChunkBlocks(x) {
                 parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 4,
                 7
             ]);
+           
             result.push([
                 x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE,
                 parseInt(getYProcedural(x * 16 * BLOCKSIZE + getXwithSeed(x) * BLOCKSIZE + 2 * BLOCKSIZE) / BLOCKSIZE) * BLOCKSIZE - BLOCKSIZE * 5,
@@ -922,6 +923,7 @@ function loop() {
                 // si le chunk n'etait pas modifié creer le terrain
                 if (worldDatas.netherModifiedChunks[netherChunkIndex] == null) {
                     var terrain = [];
+                    // regarde dans la layette de kelian tiroir du haut
                     for (var i = 0; i < getChunkBlocks(netherChunkIndex).length; i++) {
                         terrain.push(getChunkBlocks(netherChunkIndex)[i]);
                     }
